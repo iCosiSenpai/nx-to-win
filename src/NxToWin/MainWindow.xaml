@@ -1,0 +1,435 @@
+<Window x:Class="NxToWin.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NxToWin" Icon="Assets/app.ico" Width="1260" Height="885"
+        MinWidth="860" MinHeight="430" WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Canvas}" FontFamily="Segoe UI" FontSize="14"
+        Foreground="{StaticResource Ink}" UseLayoutRounding="True">
+    <Grid Margin="24,18,24,14">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,12">
+            <Button x:Name="ScanButton" DockPanel.Dock="Right" VerticalAlignment="Center" Click="OnRescanClick"
+                    Style="{StaticResource PrimaryButton}" Content="_Cerca controller"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Image Source="Assets/logo.png" Width="45" Height="45" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,11,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="NxToWin" FontSize="26" FontWeight="SemiBold"/>
+                    <TextBlock Style="{StaticResource MutedText}" Text="Controller Nintendo su Windows" FontSize="12"/>
+                </StackPanel>
+            </StackPanel>
+        </DockPanel>
+
+        <TabControl x:Name="WorkspaceTabs" Grid.Row="1">
+            <TabItem x:Name="ControllerTab" Header="C_ontroller">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="290"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Top">
+                        <Border Style="{StaticResource Panel}">
+                            <StackPanel>
+                                <TextBlock Text="Dispositivi" Style="{StaticResource Section}"/>
+                                <TextBlock Style="{StaticResource MutedText}" Text="Accendi il controller Bluetooth o collegalo via USB." x:Name="EmptyDevices" Margin="0,0,0,8"/>
+                                <ListBox x:Name="ControllersListBox" SelectionChanged="OnSelectedControllerChanged" BorderThickness="0"
+                                         Background="Transparent" AutomationProperties.Name="Controller Nintendo disponibili" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{Binding TransportName}" Style="{StaticResource MutedText}" FontSize="12" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Content="×" FontSize="19" Padding="6,0" MinHeight="30" Margin="7,0,0,0"
+                                                            ToolTip="Disconnetti da NxToWin" AutomationProperties.Name="Disconnetti controller"
+                                                            Click="OnDisconnectClick"/>
+                                                </Grid>
+                                                <UniformGrid Columns="3" Margin="0,9,0,0">
+                                                    <Button Content="Vibra" Click="OnPingClick" MinHeight="30" Padding="4" Margin="0,0,4,0" ToolTip="Invia un impulso a questo controller"/>
+                                                    <Button Content="Stick" Click="OnCenterSticksClick" MinHeight="30" Padding="4" Margin="2,0" ToolTip="Centra gli stick di questo controller"/>
+                                                    <Button Content="Gyro" Click="OnCalibrateGyroClick" MinHeight="30" Padding="4" Margin="4,0,0,0" ToolTip="Calibra il giroscopio di questo controller"/>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <Button Content="Configura controller" Click="OnOpenSettings" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Client di input" Style="{StaticResource Section}"/>
+                                <TextBlock x:Name="HomeSteamStatus" Style="{StaticResource MutedText}" Text="Steam · verifica in corso" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="HomeClientsStatus" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        </StackPanel>
+
+                        <Border Grid.Column="2" CornerRadius="20" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="22"
+                                VerticalAlignment="Top">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#302630" Offset="0"/>
+                                    <GradientStop Color="#231F2C" Offset=".48"/>
+                                    <GradientStop Color="#1A1921" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <StackPanel>
+                                <TextBlock x:Name="ControllerTitle" Text="Nessun controller" Style="{StaticResource Heading}" TextWrapping="Wrap"/>
+                                <TextBlock Style="{StaticResource MutedText}" Text="Il monitor si aggiorna con il controller selezionato." x:Name="ControllerSubtitle" Margin="0,5,0,0"/>
+                                <Border Background="#1C1921" CornerRadius="14" BorderBrush="#4D4252" BorderThickness="1" Padding="16" Margin="0,22,0,17">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="Stick sinistro" HorizontalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                                            <Canvas Width="124" Height="124">
+    <Ellipse Width="124" Height="124" Stroke="#65596F" StrokeThickness="1" Fill="#211D28"/>
+    <Ellipse Canvas.Left="17" Canvas.Top="17" Width="90" Height="90" Stroke="#4B4156" StrokeThickness="1"/>
+    <Ellipse Canvas.Left="39" Canvas.Top="39" Width="46" Height="46" Stroke="#4B4156" StrokeThickness="1"/>
+    <Path Data="M 0,62 H 124 M 62,0 V 124" Stroke="#53465E" StrokeThickness="1"/>
+    <Ellipse x:Name="LeftStickDot" Canvas.Left="56" Canvas.Top="56" Width="12" Height="12" Fill="{StaticResource Accent}"/>
+</Canvas>
+                                            <TextBlock Style="{StaticResource MutedText}" Text="X 0,00    Y 0,00" x:Name="LeftStickLabel" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                            <TextBlock Text="Stick destro" HorizontalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                                            <Canvas Width="124" Height="124">
+    <Ellipse Width="124" Height="124" Stroke="#65596F" StrokeThickness="1" Fill="#211D28"/>
+    <Ellipse Canvas.Left="17" Canvas.Top="17" Width="90" Height="90" Stroke="#4B4156" StrokeThickness="1"/>
+    <Ellipse Canvas.Left="39" Canvas.Top="39" Width="46" Height="46" Stroke="#4B4156" StrokeThickness="1"/>
+    <Path Data="M 0,62 H 124 M 62,0 V 124" Stroke="#53465E" StrokeThickness="1"/>
+    <Ellipse x:Name="RightStickDot" Canvas.Left="56" Canvas.Top="56" Width="12" Height="12" Fill="{StaticResource Lavender}"/>
+</Canvas>
+                                            <TextBlock Style="{StaticResource MutedText}" Text="X 0,00    Y 0,00" x:Name="RightStickLabel" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <TextBlock Text="Pulsanti premuti" Foreground="{StaticResource Muted}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="ActiveButtonsText" Text="—" TextWrapping="Wrap" FontSize="16" Foreground="{StaticResource Accent}" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="0,14,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Movimento" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                        <TextBlock Style="{StaticResource MutedText}" Text="—" x:Name="AttitudeText"/>
+                                        <TextBlock Style="{StaticResource MutedText}" Text="—" x:Name="MotionText" Margin="0,4,0,0"/>
+                                        <TextBlock Style="{StaticResource MutedText}" Text="—" x:Name="AuxSensorsText" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem x:Name="SettingsTab" Header="Con_figurazione">
+                <ScrollViewer>
+                    <StackPanel>
+                        <Border Style="{StaticResource Panel}" Padding="18,14" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,16,0">
+                                    <TextBlock Text="Profili" Style="{StaticResource Section}" Margin="0"/>
+                                    <UniformGrid Columns="2">
+                                        <StackPanel Margin="0,0,5,0">
+                                            <Label Content="_Carica profilo" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=ProfileCombo}"/>
+                                            <ComboBox x:Name="ProfileCombo" SelectionChanged="OnProfileSelected"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="5,0,0,0">
+                                            <Label Content="_Nome del profilo" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=ProfileName}"/>
+                                            <TextBox x:Name="ProfileName" MaxLength="48"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                    <WrapPanel Margin="0,10,0,0">
+                                        <Button Content="Salva profilo" Style="{StaticResource PrimaryButton}" Click="OnSaveProfile" Margin="0,0,6,5"/>
+                                        <Button x:Name="DeleteProfileButton" Content="Elimina" Click="OnDeleteProfile" Margin="0,0,6,5"/>
+                                        <Button Content="Ripristina impostazioni" Click="OnResetProfile" Margin="0,0,0,5"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Associazione automatica" Style="{StaticResource Section}" Margin="0,0,0,5"/>
+                                    <TextBlock x:Name="ProfileAssignmentText" Style="{StaticResource MutedText}"/>
+                                    <WrapPanel Margin="0,10,0,0">
+                                        <Button x:Name="AssignProfileButton" Content="Associa profilo" Click="OnAssignProfile" Margin="0,0,6,5"/>
+                                        <Button x:Name="UnassignProfileButton" Content="Rimuovi associazione" Click="OnUnassignProfile" Margin="0,0,0,5"/>
+                                    </WrapPanel>
+                                    <TextBlock x:Name="ProfileMessage" Foreground="{StaticResource Good}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"/>
+                                <ColumnDefinition Width="30*"/>
+                                <ColumnDefinition Width="40*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,14,0">
+                                <StackPanel>
+                                    <TextBlock Text="Uscita e sensori" Style="{StaticResource Section}" Margin="0"/>
+                                    <Label Content="Controller virtuale" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=EmulationModeCombo}"/>
+                                    <ComboBox x:Name="EmulationModeCombo" SelectionChanged="OnConfigChanged"/>
+                                    <TextBlock x:Name="OutputHelp" Style="{StaticResource MutedText}" Margin="0,6,0,0"/>
+                                    <CheckBox x:Name="SteamMultiClientCheck" Checked="OnConfigChanged" Unchecked="OnConfigChanged">
+                                        <TextBlock Text="Proteggi lo streaming Switch Pro da Steam" TextWrapping="Wrap"/>
+                                    </CheckBox>
+                                    <Separator Margin="0,7" Background="{StaticResource Line}"/>
+                                    <CheckBox x:Name="AutoMergeCheck" Checked="OnConfigChanged" Unchecked="OnConfigChanged">
+                                        <TextBlock Text="Unisci automaticamente i Joy-Con" TextWrapping="Wrap"/>
+                                    </CheckBox>
+                                    <CheckBox x:Name="MagFusionCheck" Checked="OnConfigChanged" Unchecked="OnConfigChanged">
+                                        <TextBlock Text="Correggi l’orientamento con il magnetometro" TextWrapping="Wrap"/>
+                                    </CheckBox>
+                                    <CheckBox x:Name="DsuCheck" Checked="OnConfigChanged" Unchecked="OnConfigChanged">
+                                        <TextBlock Text="Server movimento DSU (UDP 26760)" TextWrapping="Wrap"/>
+                                    </CheckBox>
+                                    <CheckBox x:Name="OpticalMouseCheck" Checked="OnConfigChanged" Unchecked="OnConfigChanged">
+                                        <TextBlock Text="Mouse ottico Joy-Con 2" TextWrapping="Wrap"/>
+                                    </CheckBox>
+                                    <DockPanel Margin="0,8,0,4">
+                                        <TextBlock x:Name="OpticalSensitivityValue" DockPanel.Dock="Right" Foreground="{StaticResource Lavender}"/>
+                                        <Label Content="Sensibilità mouse" Style="{StaticResource FieldLabel}" Margin="0" Target="{Binding ElementName=OpticalSensitivity}"/>
+                                    </DockPanel>
+                                    <Slider x:Name="OpticalSensitivity" Minimum=".2" Maximum="3" Value="1.2" ValueChanged="OnSliderChanged"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource Panel}" Margin="0,0,14,0">
+                                <StackPanel>
+                                    <TextBlock Text="Mappatura" Style="{StaticResource Section}" Margin="0"/>
+                                    <Label Content="Layout A / B / X / Y" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=LayoutCombo}"/>
+                                    <ComboBox x:Name="LayoutCombo" SelectionChanged="OnConfigChanged"/>
+                                    <UniformGrid x:Name="GripMappings" Columns="2">
+                                        <StackPanel Margin="0,0,5,0">
+                                            <Label Content="GL · Posteriore" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=GlActionCombo}"/>
+                                            <ComboBox x:Name="GlActionCombo" SelectionChanged="OnConfigChanged"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="5,0,0,0">
+                                            <Label Content="GR · Posteriore" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=GrActionCombo}"/>
+                                            <ComboBox x:Name="GrActionCombo" SelectionChanged="OnConfigChanged"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                    <UniformGrid x:Name="RailMappings" Columns="2">
+                                        <StackPanel Margin="0,0,5,0">
+                                            <Label Content="SL · Joy-Con" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=SlActionCombo}"/>
+                                            <ComboBox x:Name="SlActionCombo" SelectionChanged="OnConfigChanged"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="5,0,0,0">
+                                            <Label Content="SR · Joy-Con" Style="{StaticResource FieldLabel}" Target="{Binding ElementName=SrActionCombo}"/>
+                                            <ComboBox x:Name="SrActionCombo" SelectionChanged="OnConfigChanged"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                    <StackPanel x:Name="LeftStickSettings">
+                                        <DockPanel Margin="0,10,0,4">
+                                            <TextBlock x:Name="LeftDeadzoneValue" DockPanel.Dock="Right" Foreground="{StaticResource Lavender}"/>
+                                            <Label Content="Zona morta sinistra" Style="{StaticResource FieldLabel}" Margin="0" Target="{Binding ElementName=LeftDeadzone}"/>
+                                        </DockPanel>
+                                        <Slider x:Name="LeftDeadzone" Minimum="0" Maximum=".35" Value=".05" ValueChanged="OnSliderChanged"/>
+                                    </StackPanel>
+                                    <StackPanel x:Name="RightStickSettings">
+                                        <DockPanel Margin="0,10,0,4">
+                                            <TextBlock x:Name="RightDeadzoneValue" DockPanel.Dock="Right" Foreground="{StaticResource Lavender}"/>
+                                            <Label Content="Zona morta destra" Style="{StaticResource FieldLabel}" Margin="0" Target="{Binding ElementName=RightDeadzone}"/>
+                                        </DockPanel>
+                                        <Slider x:Name="RightDeadzone" Minimum="0" Maximum=".35" Value=".05" ValueChanged="OnSliderChanged"/>
+                                    </StackPanel>
+                                    <DockPanel Margin="0,10,0,4">
+                                        <TextBlock x:Name="RumbleGainValue" DockPanel.Dock="Right" Foreground="{StaticResource Lavender}"/>
+                                        <Label Content="Intensità vibrazione" Style="{StaticResource FieldLabel}" Margin="0" Target="{Binding ElementName=RumbleGain}"/>
+                                    </DockPanel>
+                                    <Slider x:Name="RumbleGain" Minimum="0" Maximum="2.5" Value="1.15" ValueChanged="OnSliderChanged"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource Panel}">
+                                <StackPanel>
+                                    <TextBlock Text="Scorciatoie Windows" Style="{StaticResource Section}" Margin="0,0,0,5"/>
+                                    <TextBlock x:Name="ShortcutTargetText" Style="{StaticResource MutedText}"/>
+                                <ComboBox x:Name="OfflineControllerCombo" MinHeight="34" Margin="0,4,0,0" SelectionChanged="OnOfflineControllerChanged"
+                                          AutomationProperties.Name="Modello da configurare senza controller connesso"/>
+                                    <StackPanel x:Name="CaptureShortcuts" Margin="0,7,0,0">
+                                        <TextBlock Text="Cattura" FontWeight="SemiBold"/>
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,5,0">
+                                                <Label Content="Breve" Style="{StaticResource FieldLabel}" Margin="0,4,0,3" Target="{Binding ElementName=CaptureTapCombo}"/>
+                                                <ComboBox x:Name="CaptureTapCombo" MinHeight="34" SelectionChanged="OnConfigChanged" AutomationProperties.Name="Cattura · pressione breve"/>
+                                            </StackPanel>
+                                            <StackPanel Margin="5,0,0,0">
+                                                <Label Content="Prolungata" Style="{StaticResource FieldLabel}" Margin="0,4,0,3" Target="{Binding ElementName=CaptureHoldCombo}"/>
+                                                <ComboBox x:Name="CaptureHoldCombo" MinHeight="34" SelectionChanged="OnConfigChanged" AutomationProperties.Name="Cattura · pressione prolungata"/>
+                                            </StackPanel>
+                                        </UniformGrid>
+                                    </StackPanel>
+                                    <StackPanel x:Name="HomeShortcuts" Margin="0,7,0,0">
+                                        <TextBlock Text="Home" FontWeight="SemiBold"/>
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,5,0">
+                                                <Label Content="Breve" Style="{StaticResource FieldLabel}" Margin="0,4,0,3" Target="{Binding ElementName=HomeTapCombo}"/>
+                                                <ComboBox x:Name="HomeTapCombo" MinHeight="34" SelectionChanged="OnConfigChanged" AutomationProperties.Name="Home · pressione breve"/>
+                                            </StackPanel>
+                                            <StackPanel Margin="5,0,0,0">
+                                                <Label Content="Prolungata" Style="{StaticResource FieldLabel}" Margin="0,4,0,3" Target="{Binding ElementName=HomeHoldCombo}"/>
+                                                <ComboBox x:Name="HomeHoldCombo" MinHeight="34" SelectionChanged="OnConfigChanged" AutomationProperties.Name="Home · pressione prolungata"/>
+                                            </StackPanel>
+                                        </UniformGrid>
+                                    </StackPanel>
+                                    <StackPanel x:Name="ChatCShortcuts" Margin="0,7,0,0">
+                                        <TextBlock Text="Chat C" FontWeight="SemiBold"/>
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,5,0">
+                                                <Label Content="Breve" Style="{StaticResource FieldLabel}" Margin="0,4,0,3" Target="{Binding ElementName=ChatCTapCombo}"/>
+                                                <ComboBox x:Name="ChatCTapCombo" MinHeight="34" SelectionChanged="OnConfigChanged" AutomationProperties.Name="Chat C · pressione breve"/>
+                                            </StackPanel>
+                                            <StackPanel Margin="5,0,0,0">
+                                                <Label Content="Prolungata" Style="{StaticResource FieldLabel}" Margin="0,4,0,3" Target="{Binding ElementName=ChatCHoldCombo}"/>
+                                                <ComboBox x:Name="ChatCHoldCombo" MinHeight="34" SelectionChanged="OnConfigChanged" AutomationProperties.Name="Chat C · pressione prolungata"/>
+                                            </StackPanel>
+                                        </UniformGrid>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <DockPanel Margin="0,10,0,4">
+                                            <TextBlock x:Name="HoldThresholdValue" DockPanel.Dock="Right" Foreground="{StaticResource Lavender}"/>
+                                            <Label Content="Soglia pressione lunga" Style="{StaticResource FieldLabel}" Margin="0" Target="{Binding ElementName=HoldThreshold}"/>
+                                        </DockPanel>
+                                        <Slider x:Name="HoldThreshold" Minimum="200" Maximum="1200" Value="450" TickFrequency="25"
+                                                IsSnapToTickEnabled="True" ValueChanged="OnSliderChanged"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem x:Name="BatteryTab" Header="_Batterie">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <TextBlock Text="Stato delle batterie" Style="{StaticResource Heading}"/>
+                        <TextBlock Style="{StaticResource MutedText}" Text="Le letture dipendono dal report del dispositivo. Xbox XInput comunica quattro livelli, mentre alcuni Nintendo comunicano la tensione." Margin="0,6,0,10"/>
+                        <Button x:Name="RefreshBatteryButton" Content="Aggiorna letture" HorizontalAlignment="Left" Click="OnRefreshBatteries"/>
+                        <TextBlock Style="{StaticResource MutedText}" Text="In attesa della prima lettura." x:Name="BatteryStatus" Margin="0,8,0,0"/>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="BatteryItems">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Panel}" Margin="0,0,0,8" Padding="16,13">
+                                        <DockPanel>
+                                            <StackPanel DockPanel.Dock="Right" Width="190" Margin="15,0,0,0">
+                                                <TextBlock Text="{Binding Reading.Level}" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource Lavender}"/>
+                                                <TextBlock Text="{Binding Reading.Power}" Style="{StaticResource MutedText}"/>
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Reading.Source}" Foreground="{StaticResource Accent}" Margin="0,3,0,0"/>
+                                                <TextBlock Text="{Binding Reading.Detail}" Style="{StaticResource MutedText}" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+
+            <TabItem x:Name="RumbleTab" Header="_Vibrazione">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="18"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Panel}" VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="Test HD Rumble" Style="{StaticResource Section}"/>
+                                <TextBlock x:Name="RumbleTargetText" Style="{StaticResource MutedText}" Margin="0,0,0,10"/>
+                                <StackPanel x:Name="RumbleTests" IsEnabled="False">
+                                    <UniformGrid Columns="2">
+                                        <Button Content="Impulso 170 Hz" Tag="pulse" Click="OnHapticEffectClick" Margin="0,0,4,8"/>
+                                        <Button Content="Sweep discendente" Tag="sweep" Click="OnHapticEffectClick" Margin="4,0,0,8"/>
+                                        <Button Content="Battito cardiaco" Tag="heartbeat" Click="OnHapticEffectClick" Margin="0,0,4,8"/>
+                                        <Button Content="Chirp ascendente" Tag="chirp" Click="OnHapticEffectClick" Margin="4,0,0,8"/>
+                                        <Button x:Name="LeftMotorTest" Content="Motore sinistro" Tag="left" Click="OnHapticEffectClick" Margin="0,0,4,0"/>
+                                        <Button x:Name="RightMotorTest" Content="Motore destro" Tag="right" Click="OnHapticEffectClick" Margin="4,0,0,0"/>
+                                    </UniformGrid>
+                                    <UniformGrid x:Name="StereoEffects" Columns="2" Margin="0,8,0,0">
+                                        <Button Content="Onda stereo" Tag="stereo" Click="OnHapticEffectClick" Margin="0,0,4,0"/>
+                                        <Button Content="Pioggia" Tag="rain" Click="OnHapticEffectClick" Margin="4,0,0,0"/>
+                                    </UniformGrid>
+                                </StackPanel>
+                                <Button x:Name="GameCubeTest" Content="Impulso GameCube" Tag="gamecube" Click="OnHapticEffectClick"
+                                        Visibility="Collapsed" IsEnabled="False"/>
+                                <Separator Margin="0,12" Background="{StaticResource Line}"/>
+                                <TextBlock Style="{StaticResource MutedText}" Text="Sinistra · —" x:Name="LeftLraText"/>
+                                <ProgressBar x:Name="LeftLraBar" Style="{StaticResource MotorMeter}" Margin="0,6,0,11" Foreground="{StaticResource Accent}"
+                                             AutomationProperties.Name="Intensità motore sinistro"/>
+                                <TextBlock Style="{StaticResource MutedText}" Text="Destra · —" x:Name="RightLraText"/>
+                                <ProgressBar x:Name="RightLraBar" Style="{StaticResource MotorMeter}" Margin="0,6,0,0" Foreground="{StaticResource Lavender}"
+                                             AutomationProperties.Name="Intensità motore destro"/>
+                                <Button Content="Regola intensità" Click="OnOpenSettings" HorizontalAlignment="Left" Margin="0,14,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource Panel}" VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="Motivi di Ocarina of Time" Style="{StaticResource Section}"/>
+                                <TextBlock x:Name="OcarinaDescription" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,0,0,11"/>
+                                <StackPanel x:Name="OcarinaTests" IsEnabled="False">
+                                    <Button Content="Ninna nanna di Zelda" Tag="lullaby" Click="OnOcarinaTrackClick" Margin="0,0,0,8"/>
+                                    <Button Content="Canzone del tempo" Tag="time" Click="OnOcarinaTrackClick" Margin="0,0,0,8"/>
+                                    <Button Content="Canzone delle tempeste" Tag="storms" Click="OnOcarinaTrackClick"/>
+                                </StackPanel>
+                                <Separator Margin="0,12" Background="{StaticResource Line}"/>
+                                <TextBlock x:Name="RumblePlaybackText" Style="{StaticResource MutedText}" Text="Nessun test in corso." Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite"/>
+                                <Button x:Name="StopRumbleButton" Content="Interrompi test" IsEnabled="False" Click="OnStopRumbleClick" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem x:Name="DiagnosticsTab" Header="_Diagnostica">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="340"/></Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Panel}" VerticalAlignment="Top">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12">
+                                    <Button Content="Copia" DockPanel.Dock="Right" Click="OnCopyLog"/>
+                                    <TextBlock Text="Registro eventi" Style="{StaticResource Section}" VerticalAlignment="Center" Margin="0"/>
+                                </DockPanel>
+                                <TextBox x:Name="LogTextBox" IsReadOnly="True" Height="300" FontFamily="Consolas" FontSize="12"
+                                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Registro eventi"/>
+                                <TextBlock Style="{StaticResource MutedText}" Text="" x:Name="VhfCountersText" Margin="0,11,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Grid.Column="2">
+                            <Border Style="{StaticResource Panel}">
+                                <StackPanel>
+                                    <TextBlock Text="Compatibilità Switch 2" Style="{StaticResource Section}"/>
+                                    <TextBlock x:Name="SdlCheckText" Text="Se il gioco usa SDL, controlla la SDL3.dll nella sua cartella." Style="{StaticResource MutedText}" Margin="0,0,0,10"/>
+                                    <Button Content="Verifica SDL3.dll" Click="OnCheckSdlClick"/>
+                                    <Button x:Name="RestartUsbipButton" Content="Ricollega l’uscita USB/IP" Click="OnRestartUsbipClick" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Conflitti di connessione" Style="{StaticResource Section}"/>
+                                    <TextBlock Style="{StaticResource MutedText}" Text="—" x:Name="SteamStatusText"/>
+                                    <TextBlock Style="{StaticResource MutedText}" x:Name="OtherClientsStatusText" Margin="0,6,0,10"/>
+                                    <Button x:Name="SteamGuardBtn" Click="OnSteamNoJoyGuardClick" Content="Riavvia Steam con -nojoy"/>
+                                    <Button x:Name="TakeOverButton" Click="OnTakeOverClick" Content="Chiudi Switch2Connect e cerca" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <DockPanel Grid.Row="2" Margin="0,14,0,0" LastChildFill="True">
+            <TextBlock x:Name="ActiveProfileText" DockPanel.Dock="Right" Foreground="{StaticResource Muted}" Margin="12,0,0,0"/>
+            <Ellipse x:Name="VhfStatusDot" DockPanel.Dock="Left" Width="8" Height="8" Fill="{StaticResource Muted}" Margin="0,0,9,0"/>
+            <TextBlock x:Name="VhfStatusText" Text="Uscita virtuale in avvio" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis"/>
+        </DockPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NxToWin/NxToWin.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NxToWin.ProtocolChecks/NxToWin.ProtocolChecks.csproj" />
+  </Folder>
+</Solution>

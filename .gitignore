@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+*.user
+*.log
+/forks/
+/drivers/*.dll
+!/drivers/hidapi.dll
+!/drivers/WinUHid.dll
+!/drivers/WinUHidDevs.dll
