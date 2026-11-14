@@ -29,6 +29,7 @@ internal static class HidApiNative
         public ushort Usage;
         public int InterfaceNumber;
         public IntPtr Next;
+        public int BusType;
     }
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
@@ -50,6 +51,9 @@ internal static class HidApiNative
     public static extern int hid_write(IntPtr device, byte[] data, UIntPtr length);
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr hid_error(IntPtr device);
+
+    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
     public static extern int hid_read_timeout(IntPtr device, byte[] data, UIntPtr length, int milliseconds);
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
@@ -64,6 +68,10 @@ public sealed class DiscoveredHidInfo
     public ushort UsagePage { get; init; }
     public ushort Usage { get; init; }
     public string Serial { get; init; } = "";
+    public string Name { get; init; } = "";
+    public int BusType { get; init; }
+
+    public string Transport => BusType switch { 1 => "USB", 2 => "Bluetooth", _ => "HID" };
 }
 
 /// <summary>
@@ -78,17 +86,22 @@ public sealed class HidNintendoController : IPhysicalController
     private volatile StickCalibration _leftCal = new();
     private volatile StickCalibration _rightCal = new();
     private readonly BridgeConfiguration _config;
+    private readonly string _path;
+    private readonly byte[] _switch1Rumble = HdRumbleEngine.EncodeSwitch1Neutral();
+    private ushort? _batteryMillivolts;
+    private long _nextVoltageRead;
     private byte _packetCounter;
-    private byte _sw1SubcmdCounter;
     private long _reportCount;
     private long _lastRateTick = Stopwatch.GetTimestamp();
     private double _measuredRateHz;
     private int _disposed;
+    private volatile bool _rumbleWriteFailed;
     private readonly object _writeGate = new();
 
     public string Id { get; }
     public string Name { get; }
     public string TransportName { get; }
+    internal string DevicePath => _path;
     public ushort ProductId { get; }
     public bool IsConnected { get; private set; }
     public bool IsSwitch2 => NintendoIds.IsSwitch2Pid(ProductId);
@@ -102,22 +115,24 @@ public sealed class HidNintendoController : IPhysicalController
     public event Action<IPhysicalController, ControllerStateSnapshot>? StateUpdated;
     public event Action<IPhysicalController>? Disconnected;
 
-    private HidNintendoController(IntPtr handle, string path, ushort pid, BridgeConfiguration config, Action<string> log)
+    private HidNintendoController(IntPtr handle, DiscoveredHidInfo device, BridgeConfiguration config, Action<string> log)
     {
         _handle = handle;
+        _path = device.Path;
+        ushort pid = device.ProductId;
         ProductId = pid;
         _config = config;
-        Id = GetId(path, pid);
+        Id = GetId(_path, pid);
         Name = NintendoIds.GetProductName(pid);
-        TransportName = IsSwitch2 ? "USB · HID" : "Bluetooth / USB · HID";
+        TransportName = IsSwitch2 ? "USB" : device.Transport;
         IsConnected = true;
 
         if (IsSwitch2)
         {
             try
             {
-                using var vendor = Switch2UsbConnection.Open(path, pid);
-                vendor.Initialize();
+                using var vendor = Switch2UsbConnection.Open(_path, pid);
+                vendor.Initialize(IsLeftJoyCon || IsRightJoyCon);
                 if (pid != NintendoIds.NsoGameCubePid)
                 {
                     try
@@ -166,7 +181,8 @@ public sealed class HidNintendoController : IPhysicalController
                 list.Add(new DiscoveredHidInfo
                 {
                     Path = path, VendorId = info.VendorId, ProductId = pid,
-                    UsagePage = info.UsagePage, Usage = info.Usage, Serial = serial
+                    UsagePage = info.UsagePage, Usage = info.Usage, Serial = serial,
+                    BusType = info.BusType, Name = Marshal.PtrToStringUni(info.ProductString) ?? ""
                 });
             }
         }
@@ -201,7 +217,7 @@ public sealed class HidNintendoController : IPhysicalController
             IntPtr handle = HidApiNative.hid_open_path(dev.Path);
             if (handle == IntPtr.Zero)
                 return null;
-            try { return new HidNintendoController(handle, dev.Path, dev.ProductId, config, log); }
+            try { return new HidNintendoController(handle, dev, config, log); }
             catch
             {
                 HidApiNative.hid_close(handle);
@@ -292,11 +308,9 @@ public sealed class HidNintendoController : IPhysicalController
     {
         byte[] buf = new byte[49];
         buf[0] = 0x01;
-        buf[1] = (byte)(_sw1SubcmdCounter++ & 0x0F);
+        buf[1] = (byte)(_packetCounter++ & 0x0F);
 
-        // Neutral rumble
-        byte[] neutral = HdRumbleEngine.EncodeSwitch1Neutral();
-        Buffer.BlockCopy(neutral, 0, buf, 2, 8);
+        _switch1Rumble.CopyTo(buf, 2);
 
         buf[10] = subcmd;
         for (int i = 0; i < args.Length && (11 + i) < buf.Length; i++)
@@ -330,6 +344,13 @@ public sealed class HidNintendoController : IPhysicalController
             else
             {
                 ParseSwitch1HidReport(buf.AsSpan(0, read));
+                long now = Environment.TickCount64;
+                if (now >= _nextVoltageRead)
+                {
+                    _nextVoltageRead = now + 30000;
+                    lock (_writeGate)
+                        if (_disposed == 0 && !_rumbleWriteFailed) SendSwitch1Subcommand(0x50, []);
+                }
             }
         }
     }
@@ -367,6 +388,12 @@ public sealed class HidNintendoController : IPhysicalController
     {
         if (data.Length < 12) return;
         byte reportId = data[0];
+        if (reportId == 0x21 && data.Length >= 17 && data[13] == 0xD0 && data[14] == 0x50)
+        {
+            int mv = BinaryPrimitives.ReadUInt16LittleEndian(data[15..]) * 5 / 2;
+            if (mv is >= 2500 and <= 5000) _batteryMillivolts = (ushort)mv;
+            return;
+        }
         if (reportId != 0x30) return;
 
         _reportCount++;
@@ -427,7 +454,7 @@ public sealed class HidNintendoController : IPhysicalController
             GyroX = gx,
             GyroY = gy,
             GyroZ = gz,
-            Battery = BatteryReading.Switch1(data[2]),
+            Battery = BatteryReading.Switch1(data[2], _batteryMillivolts),
             ReportRateHz = _measuredRateHz
         };
 
@@ -438,7 +465,7 @@ public sealed class HidNintendoController : IPhysicalController
         StateUpdated?.Invoke(this, snap);
     }
 
-    public bool SupportsRumble => ProductId != NintendoIds.ChargingGripPid;
+    public bool SupportsRumble => !_rumbleWriteFailed && ProductId != NintendoIds.ChargingGripPid;
 
     public Task SendHdRumbleAsync(StereoRumble rumble)
     {
@@ -453,10 +480,20 @@ public sealed class HidNintendoController : IPhysicalController
             else if (IsSwitch2)
                 payload = HdRumbleEngine.BuildSwitch2Report(sequence, scaled, wired: true, IsLeftJoyCon, IsRightJoyCon);
             else
-                payload = [0x10, (byte)sequence, .. HdRumbleEngine.EncodeSwitch1Side(scaled.Left.Peak), .. HdRumbleEngine.EncodeSwitch1Side(scaled.Right.Peak)];
+            {
+                HdRumbleEngine.WriteSwitch1Side(_switch1Rumble.AsSpan(0, 4), scaled.Left.Peak);
+                HdRumbleEngine.WriteSwitch1Side(_switch1Rumble.AsSpan(4, 4), scaled.Right.Peak);
+                payload = [0x10, (byte)sequence, .. _switch1Rumble];
+            }
 
             if (HidApiNative.hid_write(_handle, payload, (UIntPtr)payload.Length) < 0)
-                throw new IOException($"Scrittura HID non riuscita · {Name}");
+            {
+                // A timed-out HIDAPI write can remain pending. Wait for a new
+                // connection before writing any further reports on this handle.
+                _rumbleWriteFailed = true;
+                string? error = Marshal.PtrToStringUni(HidApiNative.hid_error(_handle));
+                throw new IOException($"Scrittura HID non riuscita · {Name} · {error}");
+            }
         }
         return Task.CompletedTask;
     }
@@ -465,7 +502,7 @@ public sealed class HidNintendoController : IPhysicalController
         if (IsSwitch2) return Task.CompletedTask;
         lock (_writeGate)
         {
-            if (!IsConnected || _disposed != 0) return Task.CompletedTask;
+            if (!IsConnected || _disposed != 0 || _rumbleWriteFailed) return Task.CompletedTask;
             byte pattern = playerNumber switch { 1 => 1, 2 => 3, 3 => 7, 4 => 15, _ => 0 };
             SendSwitch1Subcommand(0x30, [pattern]);
         }

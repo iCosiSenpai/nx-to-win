@@ -54,3 +54,9 @@ Restano le prove su hardware per Switch 1, entrambe le generazioni di Joy-Con, G
 L’installazione TotK Recomp 0.4.0 aperta durante il nuovo test caricava la SDL 3.4.20 standard, da 2848768 byte. Il suo hash corrispondeva alla copia originale e nel processo mancava libusb. Ho salvato una copia della DLL originale accanto al gioco, ripristinato la build SDL 3.4.20 compatibile già compilata e riavviato il gioco. Il processo ha caricato libusb. Il log di questa esecuzione ha registrato l’apertura del gamepad, campioni di movimento reali e i comandi DOWN e UP del Pro 2 fisico. [SDL e libusb per Switch 2 su Windows](https://github.com/libsdl-org/SDL/issues/14742)
 
 NxToWin ora mostra l’ora dell’ultima richiesta del protocollo USB/IP e offre una verifica della DLL SDL selezionata. Un aggiornamento del gioco può sostituire quella DLL.
+
+## Verifica della configurazione per controller
+
+- Su Windows, con Pro Controller 2 connesso, l’uscita Switch 2 Pro mostra Chat C e le assegnazioni fisiche GL e GR. Le uscite DualSense VHF, Xbox One VHF e Xbox 360 XInput mostrano i rispettivi controlli. [Matrice dei driver](docs/driver-compatibility.md)
+- In Bluetooth LE il Pro Controller 2 ha completato il tema eroico a 100 BPM in circa 26 secondi. Lo stop è stato verificato sullo stesso controller. La suite confronta i singoli campioni, il ritmo e il livello dei tre incipit originali con la build precedente. Il cursore dell’intensità è nella scheda Vibrazione e usa la stessa impostazione per profilo.
+- In USB l’app ha rilevato la ricarica e mostrato la tensione. Sulla stessa installazione Windows l’apertura dell’interfaccia WinUSB fisica ha restituito accesso negato e la scrittura di vibrazione HID è scaduta. L’app segnala l’errore dal thread di lavoro e consente un nuovo tentativo dopo la riconnessione.

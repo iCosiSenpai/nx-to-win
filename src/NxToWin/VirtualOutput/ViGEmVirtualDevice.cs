@@ -102,11 +102,12 @@ public sealed class ViGEmVirtualDevice : IVirtualOutputDevice
 
         if (_mode == EmulationMode.ViGEm_Xbox360 && _x360 != null)
         {
-            UpdateXbox360(input.State, input.Buttons);
+            var buttons = config.XboxGuideFromHome ? input.Buttons : input.Buttons & ~SwitchButtons.Home;
+            UpdateXbox360(input.State, buttons);
         }
         else if (_mode == EmulationMode.ViGEm_DualShock4 && _ds4 != null)
         {
-            UpdateDualShock4(input.State, input.Buttons);
+            UpdateDualShock4(input.State, input.Buttons, config.Ds4CaptureAsTouchpad);
         }
 
         _reportsSent++;
@@ -157,7 +158,7 @@ public sealed class ViGEmVirtualDevice : IVirtualOutputDevice
         _x360.SubmitReport();
     }
 
-    private void UpdateDualShock4(ControllerStateSnapshot state, SwitchButtons b)
+    private void UpdateDualShock4(ControllerStateSnapshot state, SwitchButtons b, bool captureAsTouchpad)
     {
         if (_ds4 == null) return;
 
@@ -173,11 +174,12 @@ public sealed class ViGEmVirtualDevice : IVirtualOutputDevice
         _ds4.SetButtonState(DualShock4Button.ThumbRight, b.HasFlag(SwitchButtons.RStick));
 
         _ds4.SetButtonState(DualShock4Button.Options, b.HasFlag(SwitchButtons.Plus));
-        _ds4.SetButtonState(DualShock4Button.Share, b.HasFlag(SwitchButtons.Minus) || b.HasFlag(SwitchButtons.Capture));
+        _ds4.SetButtonState(DualShock4Button.Share, b.HasFlag(SwitchButtons.Minus) ||
+            (!captureAsTouchpad && b.HasFlag(SwitchButtons.Capture)));
 
         byte special = 0;
         if (b.HasFlag(SwitchButtons.Home)) special |= (byte)DualShock4SpecialButton.Ps.Value;
-        if (b.HasFlag(SwitchButtons.ChatC)) special |= (byte)DualShock4SpecialButton.Touchpad.Value;
+        if (captureAsTouchpad && b.HasFlag(SwitchButtons.Capture)) special |= (byte)DualShock4SpecialButton.Touchpad.Value;
         _ds4.SetSpecialButtonsFull(special);
 
         // D-Pad Hat

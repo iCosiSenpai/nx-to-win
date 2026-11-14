@@ -15,6 +15,7 @@ CheckGyroMotion();
 CheckSteamLaunchArguments();
 CheckSdlAndOcarina();
 CheckControllerMappings();
+CheckFactoryProfiles();
 await CheckDsuAsync();
 Console.WriteLine("USB, report Switch 2, batterie, vibrazione, fusione e DSU: verifiche riuscite.");
 
@@ -80,6 +81,12 @@ static void CheckBatteries()
     Require(BatteryReading.Switch1(0x10).Power == "In carica", "carica Switch 1");
     Require(BatteryReading.Switch2(3145, charge: 0).Level == "3145 mV", "tensione Switch 2");
     Require(BatteryReading.Switch2(0, 0x26).Level == "9/9", "livello compatto Switch 2");
+    var charging = BatteryReading.Switch2(3870, charge: 0x34);
+    Require(charging.Charging && charging.Millivolts == 3870 && charging.Percent == null, "carica Switch 2 senza percentuale stimata");
+    Require(!BatteryReading.Switch2(3870, charge: 0x20).Charging, "carica Switch 2 non dedotta da byte ambiguo");
+    var switch1 = BatteryReading.Switch1(0x51, 3760).WithWindowsPercentage(65);
+    Require(switch1.Charging && switch1.ExternalPower && switch1.Level == "65%" && switch1.Voltage == "3760 mV",
+        "percentuale Windows e stato HID indipendenti");
     Require(BatteryDiagnostics.CapacityLevel(300, 600) == .5.ToString("P0"), "rapporto capacità Windows");
     Require(BatteryDiagnostics.CapacityLevel(10, 0) == "—", "capacità Windows non valida");
     var ds4 = new byte[64];
@@ -156,9 +163,17 @@ static void CheckSdlAndOcarina()
     Require(!SdlSwitch2Compatibility.HasDriver("MZ libusb_init"u8), "SDL standard senza driver Switch 2");
     Require(!SdlSwitch2Compatibility.HasDriver("SDL_JOYSTICK_HIDAPI_SWITCH2 libusb_init"u8), "file SDL non eseguibile");
 
-    CheckTrack("lullaby", [247, 294, 220, 247, 294, 220], [0, 850, 1267, 2567, 3417, 3833, 5500]);
-    CheckTrack("time", [220, 147, 175, 220, 147, 175], [0, 533, 1617, 2167, 2700, 3783, 5433]);
-    CheckTrack("storms", [147, 175, 294, 147, 175, 294], [0, 183, 367, 1117, 1300, 1483, 2983]);
+    CheckTrack("lullaby", [494, 587, 440, 494, 587, 440], [0, 850, 1267, 2567, 3417, 3833, 5500], [392, 440, 494, 587, 880]);
+    CheckTrack("time", [440, 294, 349, 440, 294, 349], [0, 533, 1617, 2167, 2700, 3783, 5433], [440, 523, 494, 392, 349]);
+    CheckTrack("storms", [294, 349, 587, 294, 349, 587], [0, 183, 367, 1117, 1300, 1483, 2983], [659, 698, 659, 698, 659]);
+    var hero = OcarinaHaptics.Build("hero");
+    Require(hero.Sum(step => step.Milliseconds) >= 25_000 &&
+        hero.All(step => step.Milliseconds > 0 && step.Left == step.Right) &&
+        hero[^1].Left.IsSilent, "tema eroico completo e arresto in silenzio");
+    Require(NotePitches(hero).Take(12).SequenceEqual([392, 294, 392, 392, 440, 494, 523, 587, 587, 587, 622, 698]),
+        "tema eroico con la salita e le terzine originali");
+    Require(hero.Take(5).Sum(step => step.Milliseconds) == 300 && hero[5].Left.IsSilent && hero[5].Milliseconds == 300 &&
+        hero.Skip(6).Take(5).Sum(step => step.Milliseconds) == 900, "tema eroico a 100 BPM con pausa di croma");
     Require(OcarinaHaptics.Build("unrecognized").Length == 0, "titolo aptico sconosciuto");
 
     var profile = new BridgeConfiguration { SlAction = ExtraButtonAction.MapToA };
@@ -194,18 +209,41 @@ static void CheckSteamLaunchArguments()
         !SteamConflictGuard.IsSwitch2ConnectProcess("Switch2ConnectUpdater"), "riconoscimento del client con versione");
 }
 
-static void CheckTrack(string name, int[] frequencies, int[] boundaries)
+static void CheckTrack(string name, int[] frequencies, int[] boundaries, int[] answer)
 {
     var steps = OcarinaHaptics.Build(name);
-    Require(steps.Length == frequencies.Length * 5, $"numero di note · {name}");
+    int phraseLength = frequencies.Length * 5;
+    int[] amplitudes = [336, 352, 320, 336, 352, 320];
     for (int i = 0; i < frequencies.Length; i++)
     {
-        var note = steps[(5 * i)..(5 * (i + 1))];
-        Require(note[..4].All(step => step.Left == step.Right && step.Left.LfFreq == frequencies[i]) &&
-            note[4].Left.IsSilent && note[4].Right.IsSilent, $"intonazione e pausa · {name}");
-        Require(note.Sum(step => step.Milliseconds) == boundaries[i + 1] - boundaries[i], $"ritmo · {name}");
-        Require(note[0].Left.LfAmp < note[1].Left.LfAmp && note[1].Left.LfAmp > note[2].Left.LfAmp &&
-            note[2].Left.LfAmp > note[3].Left.LfAmp, $"attacco e rilascio · {name}");
+        var note = steps.AsSpan(5 * i, 5).ToArray();
+        var original = new VibrationFrame(LfFreq: Math.Round(frequencies[i] / 2d, MidpointRounding.AwayFromZero),
+            LfAmp: amplitudes[i], HfFreq: frequencies[i], HfAmp: amplitudes[i] / 5);
+        Require(note.SequenceEqual(new[]
+        {
+            (original.WithStrength(.48f), original.WithStrength(.48f), 15),
+            (original, original, boundaries[i + 1] - boundaries[i] - 45),
+            (original.WithStrength(.4f), original.WithStrength(.4f), 15),
+            (original.WithStrength(.15f), original.WithStrength(.15f), 10),
+            (VibrationFrame.Silence, VibrationFrame.Silence, 5)
+        }), $"campioni, ampiezza e tempi originali · {name}, nota {i + 1}");
+    }
+    var continuation = steps[phraseLength..];
+    int[] pitches = NotePitches(continuation).ToArray();
+    Require(pitches.Length > answer.Length && pitches.Take(answer.Length).SequenceEqual(answer), $"risposta melodica · {name}");
+    Require(!Enumerable.Range(0, pitches.Length - frequencies.Length + 1)
+        .Any(i => pitches.AsSpan(i, frequencies.Length).SequenceEqual(frequencies)), $"l’incipit è suonato una volta · {name}");
+    Require(steps.Sum(step => step.Milliseconds) >= 18_000 && steps[^1].Left.IsSilent &&
+        steps.All(step => step.Milliseconds > 0 && step.Left == step.Right), $"traccia estesa e arresto in silenzio · {name}");
+}
+
+static IEnumerable<int> NotePitches((VibrationFrame Left, VibrationFrame Right, int Milliseconds)[] steps)
+{
+    for (int i = 0; i < steps.Length; i++)
+    {
+        if (steps[i].Left.IsSilent) continue;
+        yield return (int)steps[i + 1].Left.HfFreq;
+        i += 4;
     }
 }
 
@@ -217,13 +255,45 @@ static void CheckControllerMappings()
         Require(!NintendoIds.ConfigurableButtons(pid).HasFlag(SwitchButtons.ChatC), $"Chat C assente su {pid:X4}");
 
     var config = new BridgeConfiguration();
-    config.HostButtons.Configure(new ControllerProfile { ChatTap = HostAction.RecenterGyro });
+    var chat = new ControllerProfile { Output = EmulationMode.Switch2Pro_NativeUSBIP, ChatTap = HostAction.RecenterGyro };
+    config.HostButtons.Configure(chat);
     ButtonRemapper.ApplyRemapping(new() { Buttons = SwitchButtons.ChatC }, config, out bool recenter, out _);
     Require(!recenter, "Chat C aspetta il rilascio");
     ButtonRemapper.ApplyRemapping(new(), config, out recenter, out _);
     Require(recenter, "Chat C ricentra al rilascio");
     ButtonRemapper.ApplyRemapping(new(), config, out recenter, out _);
     Require(!recenter, "Chat C ricentra una sola volta");
+    foreach (var mode in Enum.GetValues<EmulationMode>().Where(mode => !VirtualControllerCapabilities.HasChatButton(mode)))
+    {
+        config.HostButtons.Configure(chat with { Output = mode });
+        ButtonRemapper.ApplyRemapping(new() { Buttons = SwitchButtons.ChatC }, config, out _, out _);
+        ButtonRemapper.ApplyRemapping(new(), config, out recenter, out _);
+        Require(!recenter, $"Chat C inattiva con {mode}");
+    }
+    Require(WinUHidDualSenseVirtualDevice.MapStickToTouch(-1, 1) == (0, 0) &&
+        WinUHidDualSenseVirtualDevice.MapStickToTouch(1, -1) == (1919, 1079), "coordinate touchpad DualSense");
+}
+
+static void CheckFactoryProfiles()
+{
+    Require(FactoryProfile.All.Count == 9 && FactoryProfile.All.Select(profile => profile.Id).Distinct().Count() == 9,
+        "preset univoci con coppie Joy-Con");
+    var joyCon = FactoryProfile.Find(NintendoIds.JoyCon2LeftPid)!;
+    var pair = FactoryProfile.Find(NintendoIds.JoyCon2LeftPid, NintendoIds.JoyCon2RightPid)!;
+    var pro = FactoryProfile.Find(NintendoIds.ProController2Pid)!;
+    Require(joyCon.AllowsOpticalMouse && !joyCon.Settings.AutoMergeJoyCons && !joyCon.HasRightStick &&
+        pair.Settings.AutoMergeJoyCons && pair.HasRightStick && pair.Buttons.HasFlag(SwitchButtons.ChatC),
+        "preset singolo e coppia Joy-Con 2");
+    Require(!pro.AllowsOpticalMouse && pro.Settings.Gl == ExtraButtonAction.MapToL3 &&
+        pro.Settings.Gr == ExtraButtonAction.MapToR3, "preset Pro 2 con GL e GR");
+
+    var previous = System.Globalization.CultureInfo.CurrentUICulture;
+    try
+    {
+        System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+        Require(NxToWin.LocExtension.Get("Tema eroico di Zelda") == "Zelda Overworld Theme", "risorse inglesi caricate");
+    }
+    finally { System.Globalization.CultureInfo.CurrentUICulture = previous; }
 }
 
 static async Task CheckDsuAsync()

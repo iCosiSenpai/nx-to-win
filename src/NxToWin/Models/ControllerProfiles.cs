@@ -28,6 +28,13 @@ internal sealed record ControllerProfile
     public bool Magnetometer { get; init; } = true;
     public bool AutoMergeJoyCons { get; init; } = true;
     public bool EnableDsu { get; init; } = true;
+    public bool CaptureAsTouchpad { get; init; } = true;
+    public bool TouchpadFromStick { get; init; }
+    public bool DualSenseMotion { get; init; } = true;
+    public bool DualSenseTriggerRumble { get; init; } = true;
+    public bool XboxOneTriggerRumble { get; init; } = true;
+    public bool XboxGuideFromHome { get; init; } = true;
+    public bool Ds4CaptureAsTouchpad { get; init; }
 }
 
 internal sealed class ControllerProfiles
@@ -36,6 +43,7 @@ internal sealed class ControllerProfiles
     private static string PathName => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NxToWin", "profiles.json");
 
     public string? ActiveName { get; set; }
+    public string? ActiveFactoryId { get; set; }
     public ControllerProfile Draft { get; set; } = new();
     public Dictionary<string, ControllerProfile> Named { get; init; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> Assignments { get; init; } = new(StringComparer.OrdinalIgnoreCase);

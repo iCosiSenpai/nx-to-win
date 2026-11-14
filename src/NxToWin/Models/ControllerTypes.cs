@@ -355,4 +355,11 @@ public sealed class BridgeConfiguration
     public int DsuPort { get; set; } = 26760;
     public bool AutoMergeJoyCons { get; set; } = true;
     public bool SteamMultiClientGuard { get; set; } = true;
+    public bool CaptureAsTouchpad { get; set; } = true;
+    public bool TouchpadFromStick { get; set; }
+    public bool DualSenseMotion { get; set; } = true;
+    public volatile bool DualSenseTriggerRumble = true;
+    public volatile bool XboxOneTriggerRumble = true;
+    public bool XboxGuideFromHome { get; set; } = true;
+    public bool Ds4CaptureAsTouchpad { get; set; }
 }

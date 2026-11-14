@@ -191,7 +191,9 @@ public sealed class HostButtonProcessor
             HoldThresholdMs = profile.HoldMs;
             changed |= SetBinding(SwitchButtons.Capture, profile.CaptureTap, profile.CaptureHold);
             changed |= SetBinding(SwitchButtons.Home, profile.HomeTap, profile.HomeHold);
-            changed |= SetBinding(SwitchButtons.ChatC, profile.ChatTap, profile.ChatHold);
+            bool hasChat = VirtualControllerCapabilities.HasChatButton(profile.Output);
+            changed |= SetBinding(SwitchButtons.ChatC, hasChat ? profile.ChatTap : HostAction.PassThrough,
+                hasChat ? profile.ChatHold : HostAction.PassThrough);
             if (changed) Reset();
         }
     }

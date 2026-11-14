@@ -49,7 +49,7 @@ internal sealed class RumbleOutput(Action<string> log)
 
     public async Task SendAsync(IPhysicalController target, StereoRumble rumble)
     {
-        await _writer.WaitAsync().ConfigureAwait(false);
+        await _writer.WaitAsync().ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
         try { await target.SendHdRumbleAsync(rumble).ConfigureAwait(false); }
         finally { _writer.Release(); }
     }

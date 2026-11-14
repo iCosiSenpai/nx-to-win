@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="_Cerca controller" xml:space="preserve"><value>_Find controllers</value></data>
+  <data name="Controller Nintendo su Windows" xml:space="preserve"><value>Nintendo controllers on Windows</value></data>
+  <data name="C_ontroller" xml:space="preserve"><value>C_ontroller</value></data>
+  <data name="Dispositivi" xml:space="preserve"><value>Devices</value></data>
+  <data name="Accendi il controller Bluetooth o collegalo via USB." xml:space="preserve"><value>Turn on your Bluetooth controller or connect it via USB.</value></data>
+  <data name="Controller Nintendo disponibili" xml:space="preserve"><value>Available Nintendo controllers</value></data>
+  <data name="Disconnetti da NxToWin" xml:space="preserve"><value>Disconnect from NxToWin</value></data>
+  <data name="Disconnetti controller" xml:space="preserve"><value>Disconnect controller</value></data>
+  <data name="Vibra" xml:space="preserve"><value>Rumble</value></data>
+  <data name="Invia un impulso a questo controller" xml:space="preserve"><value>Send a vibration pulse to this controller</value></data>
+  <data name="Centra gli stick di questo controller" xml:space="preserve"><value>Center this controller’s sticks</value></data>
+  <data name="Calibra il giroscopio di questo controller" xml:space="preserve"><value>Calibrate this controller’s gyroscope</value></data>
+  <data name="Configura controller" xml:space="preserve"><value>Configure controller</value></data>
+  <data name="Client di input" xml:space="preserve"><value>Input clients</value></data>
+  <data name="Steam · verifica in corso" xml:space="preserve"><value>Steam · checking</value></data>
+  <data name="Riavvia Steam con -nojoy" xml:space="preserve"><value>Restart Steam with -nojoy</value></data>
+  <data name="Nessun controller" xml:space="preserve"><value>No controller</value></data>
+  <data name="Il monitor si aggiorna con il controller selezionato." xml:space="preserve"><value>The monitor shows input from the selected controller.</value></data>
+  <data name="Stick sinistro" xml:space="preserve"><value>Left stick</value></data>
+  <data name="Stick destro" xml:space="preserve"><value>Right stick</value></data>
+  <data name="Pulsanti premuti" xml:space="preserve"><value>Pressed buttons</value></data>
+  <data name="Movimento" xml:space="preserve"><value>Motion</value></data>
+  <data name="Con_figurazione" xml:space="preserve"><value>Con_figuration</value></data>
+  <data name="Profili" xml:space="preserve"><value>Profiles</value></data>
+  <data name="_Carica profilo" xml:space="preserve"><value>_Load profile</value></data>
+  <data name="_Nome del profilo" xml:space="preserve"><value>Profile _name</value></data>
+  <data name="Salva profilo" xml:space="preserve"><value>Save profile</value></data>
+  <data name="Elimina" xml:space="preserve"><value>Delete</value></data>
+  <data name="Carica predefinito" xml:space="preserve"><value>Load default</value></data>
+  <data name="Associazione automatica" xml:space="preserve"><value>Automatic assignment</value></data>
+  <data name="Associa profilo" xml:space="preserve"><value>Assign profile</value></data>
+  <data name="Rimuovi associazione" xml:space="preserve"><value>Clear assignment</value></data>
+  <data name="Uscita virtuale" xml:space="preserve"><value>Virtual output</value></data>
+  <data name="Controller virtuale" xml:space="preserve"><value>Virtual controller</value></data>
+  <data name="Proteggi lo streaming Switch Pro da Steam" xml:space="preserve"><value>Protect Switch Pro streaming from Steam</value></data>
+  <data name="Cattura come clic del touchpad" xml:space="preserve"><value>Map Capture to a touchpad click</value></data>
+  <data name="Movimento DualSense" xml:space="preserve"><value>DualSense motion</value></data>
+  <data name="Audio e altoparlante richiedono un dispositivo USB composito." xml:space="preserve"><value>Audio and the speaker require a composite USB device.</value></data>
+  <data name="Converti feedback grilletti in vibrazione" xml:space="preserve"><value>Convert trigger feedback to rumble</value></data>
+  <data name="Server movimento DSU (UDP 26760)" xml:space="preserve"><value>DSU motion server (UDP 26760)</value></data>
+  <data name="Controller fisico" xml:space="preserve"><value>Physical controller</value></data>
+  <data name="GL · Posteriore" xml:space="preserve"><value>GL · Back button</value></data>
+  <data name="GR · Posteriore" xml:space="preserve"><value>GR · Back button</value></data>
+  <data name="Zona morta sinistra" xml:space="preserve"><value>Left dead zone</value></data>
+  <data name="Zona morta destra" xml:space="preserve"><value>Right dead zone</value></data>
+  <data name="Intensità vibrazione" xml:space="preserve"><value>Rumble strength</value></data>
+  <data name="Unisci automaticamente i Joy-Con" xml:space="preserve"><value>Automatically merge Joy-Con</value></data>
+  <data name="Correggi l’orientamento con il magnetometro" xml:space="preserve"><value>Correct orientation with the magnetometer</value></data>
+  <data name="Mouse ottico Joy-Con 2" xml:space="preserve"><value>Joy-Con 2 optical mouse</value></data>
+  <data name="Sensibilità mouse" xml:space="preserve"><value>Mouse sensitivity</value></data>
+  <data name="Scorciatoie Windows" xml:space="preserve"><value>Windows shortcuts</value></data>
+  <data name="Modello da configurare senza controller connesso" xml:space="preserve"><value>Controller model to configure offline</value></data>
+  <data name="Cattura" xml:space="preserve"><value>Capture</value></data>
+  <data name="Breve" xml:space="preserve"><value>Short press</value></data>
+  <data name="Prolungata" xml:space="preserve"><value>Long press</value></data>
+  <data name="Cattura · pressione breve" xml:space="preserve"><value>Capture · short press</value></data>
+  <data name="Cattura · pressione prolungata" xml:space="preserve"><value>Capture · long press</value></data>
+  <data name="Home · pressione breve" xml:space="preserve"><value>Home · short press</value></data>
+  <data name="Home · pressione prolungata" xml:space="preserve"><value>Home · long press</value></data>
+  <data name="Chat C · pressione breve" xml:space="preserve"><value>Chat C · short press</value></data>
+  <data name="Chat C · pressione prolungata" xml:space="preserve"><value>Chat C · long press</value></data>
+  <data name="Soglia pressione lunga" xml:space="preserve"><value>Long-press threshold</value></data>
+  <data name="_Batterie" xml:space="preserve"><value>_Batteries</value></data>
+  <data name="Stato delle batterie" xml:space="preserve"><value>Battery status</value></data>
+  <data name="Percentuale, livello o tensione secondo i dati del controller." xml:space="preserve"><value>Percentage, level or voltage as reported by the controller.</value></data>
+  <data name="Aggiorna letture" xml:space="preserve"><value>Refresh readings</value></data>
+  <data name="In attesa della prima lettura." xml:space="preserve"><value>Waiting for the first reading.</value></data>
+  <data name="_Vibrazione" xml:space="preserve"><value>_Rumble</value></data>
+  <data name="Test HD Rumble" xml:space="preserve"><value>HD Rumble tests</value></data>
+  <data name="Impulso 170 Hz" xml:space="preserve"><value>170 Hz pulse</value></data>
+  <data name="Sweep discendente" xml:space="preserve"><value>Descending sweep</value></data>
+  <data name="Battito cardiaco" xml:space="preserve"><value>Heartbeat</value></data>
+  <data name="Chirp ascendente" xml:space="preserve"><value>Ascending chirp</value></data>
+  <data name="Motore sinistro" xml:space="preserve"><value>Left motor</value></data>
+  <data name="Motore destro" xml:space="preserve"><value>Right motor</value></data>
+  <data name="Onda stereo" xml:space="preserve"><value>Stereo wave</value></data>
+  <data name="Pioggia" xml:space="preserve"><value>Rain</value></data>
+  <data name="Impulso GameCube" xml:space="preserve"><value>GameCube pulse</value></data>
+  <data name="Sinistra · —" xml:space="preserve"><value>Left · —</value></data>
+  <data name="Destra · —" xml:space="preserve"><value>Right · —</value></data>
+  <data name="Intensità motore sinistro" xml:space="preserve"><value>Left motor intensity</value></data>
+  <data name="Intensità motore destro" xml:space="preserve"><value>Right motor intensity</value></data>
+  <data name="Melodie di Zelda" xml:space="preserve"><value>Zelda melodies</value></data>
+  <data name="Ninna nanna di Zelda" xml:space="preserve"><value>Zelda’s Lullaby</value></data>
+  <data name="Canzone del tempo" xml:space="preserve"><value>Song of Time</value></data>
+  <data name="Canzone delle tempeste" xml:space="preserve"><value>Song of Storms</value></data>
+  <data name="Tema eroico di Zelda" xml:space="preserve"><value>Zelda Overworld Theme</value></data>
+  <data name="Nessun test in corso." xml:space="preserve"><value>No test playing.</value></data>
+  <data name="Interrompi test" xml:space="preserve"><value>Stop test</value></data>
+  <data name="_Diagnostica" xml:space="preserve"><value>_Diagnostics</value></data>
+  <data name="Copia" xml:space="preserve"><value>Copy</value></data>
+  <data name="Registro eventi" xml:space="preserve"><value>Event log</value></data>
+  <data name="Compatibilità Switch 2" xml:space="preserve"><value>Switch 2 compatibility</value></data>
+  <data name="Se il gioco usa SDL, controlla la SDL3.dll nella sua cartella." xml:space="preserve"><value>For SDL games, check the SDL3.dll in the game folder.</value></data>
+  <data name="Verifica SDL3.dll" xml:space="preserve"><value>Check SDL3.dll</value></data>
+  <data name="Ricollega l’uscita USB/IP" xml:space="preserve"><value>Reconnect USB/IP output</value></data>
+  <data name="Conflitti di connessione" xml:space="preserve"><value>Connection conflicts</value></data>
+  <data name="_Impostazioni" xml:space="preserve"><value>_Settings</value></data>
+  <data name="Impostazioni dell’app" xml:space="preserve"><value>App settings</value></data>
+  <data name="Lingua" xml:space="preserve"><value>Language</value></data>
+  <data name="La lingua viene applicata al prossimo avvio." xml:space="preserve"><value>The language takes effect the next time you start the app.</value></data>
+  <data name="Aggiorna automaticamente la scheda Batterie" xml:space="preserve"><value>Refresh batteries automatically</value></data>
+  <data name="Apri la finestra massimizzata" xml:space="preserve"><value>Start maximized</value></data>
+  <data name="Dona con PayPal" xml:space="preserve"><value>Donate with PayPal</value></data>
+  <data name="Uscita virtuale in avvio" xml:space="preserve"><value>Starting virtual output</value></data>
+  <data name="Impostazioni salvate." xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="Impossibile salvare le impostazioni." xml:space="preserve"><value>Could not save settings.</value></data>
+  <data name="Predefinito" xml:space="preserve"><value>Default</value></data>
+  <data name="Profilo" xml:space="preserve"><value>Profile</value></data>
+  <data name="Impostazioni personali" xml:space="preserve"><value>Custom settings</value></data>
+  <data name="Impostazioni predefinite · {0}" xml:space="preserve"><value>Default settings · {0}</value></data>
+  <data name="Seleziona un controller nella scheda Controller." xml:space="preserve"><value>Select a controller in the Controller tab.</value></data>
+  <data name="Nessun profilo associato" xml:space="preserve"><value>No assigned profile</value></data>
+  <data name="Profilo «{0}» caricato." xml:space="preserve"><value>Profile “{0}” loaded.</value></data>
+  <data name="Profilo «{0}» salvato." xml:space="preserve"><value>Profile “{0}” saved.</value></data>
+  <data name="Profilo «{0}» eliminato." xml:space="preserve"><value>Profile “{0}” deleted.</value></data>
+  <data name="Profilo «{0}» associato." xml:space="preserve"><value>Profile “{0}” assigned.</value></data>
+  <data name="Inserisci un nome." xml:space="preserve"><value>Enter a name.</value></data>
+  <data name="Associazione rimossa." xml:space="preserve"><value>Assignment cleared.</value></data>
+  <data name="Impossibile salvare i profili." xml:space="preserve"><value>Could not save profiles.</value></data>
+  <data name="Joy-Con 2 sinistro" xml:space="preserve"><value>Left Joy-Con 2</value></data>
+  <data name="Joy-Con 2 destro" xml:space="preserve"><value>Right Joy-Con 2</value></data>
+  <data name="Joy-Con sinistro" xml:space="preserve"><value>Left Joy-Con</value></data>
+  <data name="Joy-Con destro" xml:space="preserve"><value>Right Joy-Con</value></data>
+  <data name="Coppia Joy-Con" xml:space="preserve"><value>Joy-Con pair</value></data>
+  <data name="Coppia Joy-Con 2" xml:space="preserve"><value>Joy-Con 2 pair</value></data>
+  <data name="GameCube per Switch 2" xml:space="preserve"><value>GameCube for Switch 2</value></data>
+  <data name="Modello per la configurazione offline" xml:space="preserve"><value>Controller model for offline setup</value></data>
+  <data name="ViGEmBus. Per giochi Windows che richiedono XInput." xml:space="preserve"><value>ViGEmBus. For Windows games that require XInput.</value></data>
+  <data name="ViGEmBus. Pulsanti e vibrazione in formato DualShock 4." xml:space="preserve"><value>ViGEmBus. DualShock 4 buttons and rumble.</value></data>
+  <data name="WinUHid. Report Nintendo Switch e movimento." xml:space="preserve"><value>WinUHid. Nintendo Switch input and motion reports.</value></data>
+  <data name="Driver USB/IP di Windows. Il gioco deve supportare Switch 2 Pro USB." xml:space="preserve"><value>Windows USB/IP driver. The game must support the Switch 2 Pro over USB.</value></data>
+  <data name="WinUHid. Report PlayStation 5 e movimento." xml:space="preserve"><value>WinUHid. PlayStation 5 input and motion reports.</value></data>
+  <data name="WinUHid. Profilo HID con vibrazione sui grilletti." xml:space="preserve"><value>WinUHid. HID profile with impulse triggers.</value></data>
+  <data name="Mantieni le posizioni Nintendo" xml:space="preserve"><value>Keep Nintendo positions</value></data>
+  <data name="Scambia A ↔ B e X ↔ Y" xml:space="preserve"><value>Swap A ↔ B and X ↔ Y</value></data>
+  <data name="Scambia A ↔ Y e B ↔ X" xml:space="preserve"><value>Swap A ↔ Y and B ↔ X</value></data>
+  <data name="Mantieni originale" xml:space="preserve"><value>Keep original</value></data>
+  <data name="Stick sinistro (L3)" xml:space="preserve"><value>Left stick (L3)</value></data>
+  <data name="Stick destro (R3)" xml:space="preserve"><value>Right stick (R3)</value></data>
+  <data name="Pulsante A" xml:space="preserve"><value>A button</value></data>
+  <data name="Pulsante B" xml:space="preserve"><value>B button</value></data>
+  <data name="Pulsante X" xml:space="preserve"><value>X button</value></data>
+  <data name="Pulsante Y" xml:space="preserve"><value>Y button</value></data>
+  <data name="Dorsale L" xml:space="preserve"><value>L bumper</value></data>
+  <data name="Dorsale R" xml:space="preserve"><value>R bumper</value></data>
+  <data name="Grilletto ZL" xml:space="preserve"><value>ZL trigger</value></data>
+  <data name="Grilletto ZR" xml:space="preserve"><value>ZR trigger</value></data>
+  <data name="Croce ↑" xml:space="preserve"><value>D-pad ↑</value></data>
+  <data name="Croce ↓" xml:space="preserve"><value>D-pad ↓</value></data>
+  <data name="Croce ←" xml:space="preserve"><value>D-pad ←</value></data>
+  <data name="Croce →" xml:space="preserve"><value>D-pad →</value></data>
+  <data name="Ricentra giroscopio" xml:space="preserve"><value>Recenter gyroscope</value></data>
+  <data name="Sospendi giroscopio durante la pressione" xml:space="preserve"><value>Pause gyroscope while held</value></data>
+  <data name="Invia al gioco" xml:space="preserve"><value>Send to game</value></data>
+  <data name="Disattiva" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Apri Game Bar" xml:space="preserve"><value>Open Game Bar</value></data>
+  <data name="Screenshot Game Bar" xml:space="preserve"><value>Game Bar screenshot</value></data>
+  <data name="Avvia / ferma registrazione" xml:space="preserve"><value>Start / stop recording</value></data>
+  <data name="Salva ultimi 30 secondi" xml:space="preserve"><value>Save the last 30 seconds</value></data>
+  <data name="Attiva / disattiva microfono" xml:space="preserve"><value>Toggle microphone</value></data>
+  <data name="Strumento di cattura" xml:space="preserve"><value>Snipping Tool</value></data>
+  <data name="Stamp schermo intero" xml:space="preserve"><value>Print Screen</value></data>
+  <data name="Menu Start" xml:space="preserve"><value>Start menu</value></data>
+  <data name="Visualizzazione attività" xml:space="preserve"><value>Task view</value></data>
+  <data name="Cambia finestra" xml:space="preserve"><value>Switch window</value></data>
+  <data name="Mostra desktop" xml:space="preserve"><value>Show desktop</value></data>
+  <data name="Schermo intero" xml:space="preserve"><value>Full screen</value></data>
+  <data name="Chiudi app" xml:space="preserve"><value>Close app</value></data>
+  <data name="Gestione attività" xml:space="preserve"><value>Task Manager</value></data>
+  <data name="Tastiera su schermo" xml:space="preserve"><value>On-screen keyboard</value></data>
+  <data name="Centro notifiche" xml:space="preserve"><value>Notification center</value></data>
+  <data name="Impostazioni rapide" xml:space="preserve"><value>Quick Settings</value></data>
+  <data name="Blocca PC" xml:space="preserve"><value>Lock PC</value></data>
+  <data name="Alza volume" xml:space="preserve"><value>Volume up</value></data>
+  <data name="Abbassa volume" xml:space="preserve"><value>Volume down</value></data>
+  <data name="Disattiva audio" xml:space="preserve"><value>Mute audio</value></data>
+  <data name="Riproduci / pausa" xml:space="preserve"><value>Play / pause</value></data>
+  <data name="Traccia successiva" xml:space="preserve"><value>Next track</value></data>
+  <data name="Traccia precedente" xml:space="preserve"><value>Previous track</value></data>
+  <data name="Steam · chiuso" xml:space="preserve"><value>Steam · closed</value></data>
+  <data name="Steam · avviato con -nojoy" xml:space="preserve"><value>Steam · running with -nojoy</value></data>
+  <data name="Steam · attivo, possibile conflitto" xml:space="preserve"><value>Steam · running, possible conflict</value></data>
+  <data name="Steam · attivo, modalità non rilevata" xml:space="preserve"><value>Steam · running, mode unknown</value></data>
+  <data name="Altri client noti · nessuno attivo" xml:space="preserve"><value>Other known clients · none active</value></data>
+  <data name="Possibili conflitti · {0}" xml:space="preserve"><value>Possible conflicts · {0}</value></data>
+  <data name="Riavvio di Steam…" xml:space="preserve"><value>Restarting Steam…</value></data>
+  <data name="Uscita non disponibile" xml:space="preserve"><value>Output unavailable</value></data>
+  <data name="In attesa di una richiesta del protocollo Switch 2" xml:space="preserve"><value>Waiting for a Switch 2 protocol request</value></data>
+  <data name="Ultima richiesta del protocollo alle {0:HH:mm:ss}" xml:space="preserve"><value>Last protocol request at {0:HH:mm:ss}</value></data>
+  <data name="Connessione fallita" xml:space="preserve"><value>Connection failed</value></data>
+  <data name="Host pronto {0:HH:mm:ss}" xml:space="preserve"><value>Host ready {0:HH:mm:ss}</value></data>
+  <data name="In attesa dell’host" xml:space="preserve"><value>Waiting for host</value></data>
+  <data name="Uscita attiva" xml:space="preserve"><value>Output active</value></data>
+  <data name="Collega un controller per provare i motori." xml:space="preserve"><value>Connect a controller to test its motors.</value></data>
+  <data name="L’uscita di vibrazione del controller selezionato non è disponibile." xml:space="preserve"><value>Rumble is unavailable on the selected controller.</value></data>
+  <data name="Il motore GameCube supporta il test a impulso." xml:space="preserve"><value>The GameCube motor supports the pulse test.</value></data>
+  <data name="Melodie con attacco e rilascio sui motori HD Rumble." xml:space="preserve"><value>Extended melodies for HD Rumble actuators.</value></data>
+  <data name="In riproduzione · {0}" xml:space="preserve"><value>Playing · {0}</value></data>
+  <data name="Completato · {0}" xml:space="preserve"><value>Completed · {0}</value></data>
+  <data name="Interrotto · {0}" xml:space="preserve"><value>Stopped · {0}</value></data>
+  <data name="Test non riuscito · {0}" xml:space="preserve"><value>Test failed · {0}</value></data>
+  <data name="Test interrotto. Controller disconnesso." xml:space="preserve"><value>Test stopped. Controller disconnected.</value></data>
+  <data name="Sinistra" xml:space="preserve"><value>Left</value></data>
+  <data name="Destra" xml:space="preserve"><value>Right</value></data>
+  <data name="Nessun dispositivo rilevato." xml:space="preserve"><value>No device detected.</value></data>
+  <data name="Ultima lettura alle {0:HH:mm:ss}." xml:space="preserve"><value>Last reading at {0:HH:mm:ss}.</value></data>
+  <data name="Lettura batterie non disponibile." xml:space="preserve"><value>Battery readings unavailable.</value></data>
+  <data name="In carica" xml:space="preserve"><value>Charging</value></data>
+  <data name="{0} · In carica" xml:space="preserve"><value>{0} · Charging</value></data>
+  <data name="{0} · {1:F0} Hz · Batteria {2}" xml:space="preserve"><value>{0} · {1:F0} Hz · Battery {2}</value></data>
+  <data name="A batteria" xml:space="preserve"><value>On battery</value></data>
+  <data name="Alimentazione esterna" xml:space="preserve"><value>External power</value></data>
+  <data name="Alimentazione USB" xml:space="preserve"><value>USB power</value></data>
+  <data name="Carica completa" xml:space="preserve"><value>Fully charged</value></data>
+  <data name="Carica sospesa" xml:space="preserve"><value>Charging paused</value></data>
+  <data name="Errore di carica" xml:space="preserve"><value>Charging error</value></data>
+  <data name="Stato sconosciuto" xml:space="preserve"><value>Unknown status</value></data>
+  <data name="Stato di carica non esposto" xml:space="preserve"><value>Charging status unavailable</value></data>
+  <data name="Tensione non disponibile" xml:space="preserve"><value>Voltage unavailable</value></data>
+  <data name="Nessun dato" xml:space="preserve"><value>No data</value></data>
+  <data name="In attesa di un report valido." xml:space="preserve"><value>Waiting for a valid report.</value></data>
+  <data name="Windows · livello batteria" xml:space="preserve"><value>Windows · battery level</value></data>
+  <data name="Risoluzione a scatti del 10%." xml:space="preserve"><value>Reported in 10% increments.</value></data>
+  <data name="Nintendo · report compatto" xml:space="preserve"><value>Nintendo · compact report</value></data>
+  <data name="Vuota" xml:space="preserve"><value>Empty</value></data>
+  <data name="Critica" xml:space="preserve"><value>Critical</value></data>
+  <data name="Bassa" xml:space="preserve"><value>Low</value></data>
+  <data name="Media" xml:space="preserve"><value>Medium</value></data>
+  <data name="Alta" xml:space="preserve"><value>High</value></data>
+  <data name="Piena" xml:space="preserve"><value>Full</value></data>
+  <data name="Pile alcaline" xml:space="preserve"><value>Alkaline batteries</value></data>
+  <data name="Batteria NiMH" xml:space="preserve"><value>NiMH battery</value></data>
+  <data name="Tipo batteria sconosciuto" xml:space="preserve"><value>Unknown battery type</value></data>
+  <data name="Inattiva" xml:space="preserve"><value>Idle</value></data>
+  <data name="Lettura HID non disponibile." xml:space="preserve"><value>HID reading unavailable.</value></data>
+  <data name="Il controller non ha inviato un report HID esteso con il campo batteria." xml:space="preserve"><value>The controller has not sent an extended HID battery report.</value></data>
+  <data name="Driver Switch 2 con libusb rilevato in questa SDL3.dll." xml:space="preserve"><value>Switch 2 driver with libusb found in this SDL3.dll.</value></data>
+  <data name="Questa SDL3.dll non espone il driver Switch 2 con libusb. Usa una build SDL compatibile oppure Switch Pro · VHF." xml:space="preserve"><value>This SDL3.dll does not expose the Switch 2 driver with libusb. Use a compatible SDL build or Switch Pro · VHF.</value></data>
+  <data name="Dimensione SDL3.dll non valida." xml:space="preserve"><value>Invalid SDL3.dll size.</value></data>
+  <data name="DSU inattivo" xml:space="preserve"><value>DSU inactive</value></data>
+  <data name="{0:N0} report inviati · {1:N0} pacchetti vibrazione · {2}" xml:space="preserve"><value>{0:N0} reports sent · {1:N0} rumble packets · {2}</value></data>
+  <data name="Accelerazione" xml:space="preserve"><value>Acceleration</value></data>
+  <data name="Sensore ottico" xml:space="preserve"><value>Optical sensor</value></data>
+  <data name="Magnetometro" xml:space="preserve"><value>Magnetometer</value></data>
+  <data name="Impulso" xml:space="preserve"><value>Pulse</value></data>
+  <data name="Touchpad dallo stick destro tenendo premuto −" xml:space="preserve"><value>Touchpad from the right stick while holding −</value></data>
+  <data name="Home come pulsante Xbox Guide" xml:space="preserve"><value>Map Home to Xbox Guide</value></data>
+  <data name="Chat C come clic del touchpad" xml:space="preserve"><value>Map Chat C to a touchpad click</value></data>
+  <data name="Chiudi Switch2Connect e cerca" xml:space="preserve"><value>Close Switch2Connect and scan</value></data>
+  <data name="Libreria SDL 3" xml:space="preserve"><value>SDL 3 library</value></data>
+  <data name="Verifica SDL3.dll non riuscita. {0}" xml:space="preserve"><value>Could not check SDL3.dll. {0}</value></data>
+  <data name="Eseguibile Steam non trovato." xml:space="preserve"><value>Steam executable not found.</value></data>
+  <data name="Steam non si è chiuso entro 12 secondi." xml:space="preserve"><value>Steam did not close within 12 seconds.</value></data>
+  <data name="Avvio Steam non riuscito." xml:space="preserve"><value>Could not start Steam.</value></data>
+  <data name="Avvio di Steam richiesto con -nojoy." xml:space="preserve"><value>Requested Steam launch with -nojoy.</value></data>
+  <data name="Client USB/IP assente" xml:space="preserve"><value>USB/IP client missing</value></data>
+  <data name="DualShock 4 · adattatore USB" xml:space="preserve"><value>DualShock 4 · USB adapter</value></data>
+  <data name="Nessuna azione" xml:space="preserve"><value>No action</value></data>
+  <data name="Vibrazione sui grilletti Xbox One" xml:space="preserve"><value>Xbox One impulse trigger rumble</value></data>
+</root>

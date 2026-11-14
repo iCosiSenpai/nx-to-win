@@ -2,10 +2,20 @@ using System.Runtime.InteropServices;
 using NxToWin.Models;
 using Windows.Gaming.Input;
 using Windows.System.Power;
+using Windows.Devices.Enumeration;
 
 namespace NxToWin.Hardware;
 
-public sealed record BatteryEntry(string Name, BatteryReading Reading);
+public sealed record BatteryEntry(string Name, BatteryReading Reading, string Transport = "")
+{
+    public string TransportIcon => Transport switch
+    {
+        "USB" => "\uE88E",
+        "Wireless" => "\uE701",
+        _ when Transport.StartsWith("Bluetooth", StringComparison.Ordinal) => "\uE702",
+        _ => "\uE7FC"
+    };
+}
 
 internal static class BatteryDiagnostics
 {
@@ -20,7 +30,7 @@ internal static class BatteryDiagnostics
         var result = new List<BatteryEntry>();
         foreach (var controller in RawGameController.RawGameControllers)
         {
-            if (controller.HardwareVendorId != 0x045E) continue;
+            if (controller.HardwareVendorId is NintendoIds.VendorId or 0x054C) continue;
             try
             {
                 var report = controller.TryGetBatteryReport();
@@ -34,10 +44,17 @@ internal static class BatteryDiagnostics
                     BatteryStatus.Idle => "Inattiva",
                     _ => "Stato sconosciuto"
                 };
-                string detail = remaining.HasValue && full.HasValue
-                    ? $"Capacità residua / carica piena secondo Windows: {remaining} / {full}."
-                    : "Windows non ha esposto entrambe le capacità.";
-                result.Add(new(controller.DisplayName, new(CapacityLevel(remaining, full), status, "Windows Gaming Input", detail)));
+                string detail = remaining.HasValue && full.HasValue ? $"{remaining} / {full} mWh" : "";
+                if (remaining is >= 0 && full is > 0 && remaining <= full || report.Status == BatteryStatus.Charging)
+                {
+                    var reading = new BatteryReading(CapacityLevel(remaining, full), status, "Windows Gaming Input", detail)
+                    {
+                        Charging = report.Status == BatteryStatus.Charging,
+                        Percent = remaining is >= 0 && full is > 0 && remaining <= full
+                            ? (int)Math.Round((double)remaining.Value / full.Value * 100) : null
+                    };
+                    result.Add(new(controller.DisplayName, reading));
+                }
             }
             catch (COMException) { }
         }
@@ -55,9 +72,10 @@ internal static class BatteryDiagnostics
             string[] levels = ["Vuota", "Bassa", "Media", "Alta"];
             string level = (battery.Type is 2 or 3 or 255) && battery.Level < levels.Length
                 ? levels[battery.Level] : "—";
+            if (battery.Type == 1) continue;
             result.Add(new($"Slot XInput {i + 1}",
                 new(level, type, "Windows · XInput",
-                    $"Tipo 0x{battery.Type:X2}, livello 0x{battery.Level:X2}. Lo slot può corrispondere a un controller già elencato o virtuale.")));
+                    ""), battery.Type is 2 or 3 ? "Wireless" : ""));
         }
 
         foreach (var device in HidNintendoController.EnumerateHidDevices(0x054C))
@@ -75,7 +93,9 @@ internal static class BatteryDiagnostics
             IntPtr handle = HidApiNative.hid_open_path(device.Path);
             if (handle == IntPtr.Zero)
             {
-                result.Add(new(name, BatteryReading.Unknown with { Detail = "Lettura HID non disponibile." }));
+                var fallback = BatteryReading.Unknown with { Detail = "Lettura HID non disponibile." };
+                result.Add(new(name, ReadWindowsBatteryAsync(device.Path, DeviceInformationKind.DeviceInterface, fallback)
+                    .GetAwaiter().GetResult(), device.Transport));
                 continue;
             }
 
@@ -90,17 +110,57 @@ internal static class BatteryDiagnostics
                     if (count > 0)
                         reading = ParsePlayStation(device.ProductId, buffer.AsSpan(0, count));
                 }
-                result.Add(new(name, reading ?? BatteryReading.Unknown with
+                var fallback = reading ?? BatteryReading.Unknown with
                 {
                     Detail = "Il controller non ha inviato un report HID esteso con il campo batteria."
-                }));
+                };
+                result.Add(new(name, ReadWindowsBatteryAsync(device.Path, DeviceInformationKind.DeviceInterface, fallback)
+                    .GetAwaiter().GetResult(), device.Transport));
             }
             finally
             {
                 HidApiNative.hid_close(handle);
             }
         }
+        foreach (var device in HidNintendoController.EnumerateHidDevices(0).Where(d => d.VendorId is not (NintendoIds.VendorId or 0x054C)))
+        {
+            var reading = ReadWindowsBatteryAsync(device.Path, DeviceInformationKind.DeviceInterface, BatteryReading.Unknown)
+                .GetAwaiter().GetResult();
+            if (reading.Percent.HasValue)
+                result.Add(new(string.IsNullOrWhiteSpace(device.Name) ? "Controller HID" : device.Name, reading, device.Transport));
+        }
         return result;
+    }
+
+    internal static async Task<BatteryReading> ReadWindowsBatteryAsync(string id, DeviceInformationKind kind, BatteryReading fallback)
+    {
+        if (string.IsNullOrEmpty(id)) return fallback;
+        try
+        {
+            const string batteryProperty = "System.Devices.BatteryLife";
+            const string containerProperty = "System.Devices.ContainerId";
+            string[] properties = [batteryProperty, containerProperty];
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(700));
+            var info = await DeviceInformation.CreateFromIdAsync(id, properties, kind).AsTask(timeout.Token).ConfigureAwait(false);
+            int? percentage = GetBatteryPercent(info, batteryProperty);
+            if (percentage == null && kind == DeviceInformationKind.DeviceInterface &&
+                info?.Properties.TryGetValue(containerProperty, out var value) == true && value is Guid container && container != Guid.Empty)
+            {
+                var physicalDevice = await DeviceInformation.CreateFromIdAsync(container.ToString("B"),
+                    [batteryProperty], DeviceInformationKind.DeviceContainer).AsTask(timeout.Token).ConfigureAwait(false);
+                percentage = GetBatteryPercent(physicalDevice, batteryProperty);
+            }
+            if (percentage.HasValue) return fallback.WithWindowsPercentage(percentage.Value);
+        }
+        catch (Exception ex) when (ex is COMException or ArgumentException or OperationCanceledException or UnauthorizedAccessException) { }
+        return fallback;
+    }
+
+    private static int? GetBatteryPercent(DeviceInformation? info, string property)
+    {
+        if (info?.Properties.TryGetValue(property, out var value) != true) return null;
+        int percentage = value switch { byte b => b, ushort u => u, uint u when u <= 100 => (int)u, int i => i, _ => -1 };
+        return percentage is >= 0 and <= 100 ? percentage : null;
     }
 
     internal static string CapacityLevel(int? remaining, int? full) =>
@@ -146,7 +206,8 @@ internal static class BatteryDiagnostics
             power = !wired ? "A batteria" : step == 11 ? "Carica completa" : step <= 10 ? "In carica" : "Alimentazione USB";
             level = wired && step == 11 ? "100%" : !wired && step > 9 ? "—" : TenPercentBand(step);
         }
-        return new(level, power, $"Sony HID · 0x{report[0]:X2}", $"Stato grezzo 0x{status:X2}. Risoluzione a scatti del 10%.");
+        return new(level, power, $"Sony HID · 0x{report[0]:X2}", "Risoluzione a scatti del 10%.")
+        { Charging = power == "In carica", ExternalPower = (sense ? status >> 4 is 1 or 2 : (status & 0x10) != 0) };
     }
 
     private static string TenPercentBand(int step) => step switch

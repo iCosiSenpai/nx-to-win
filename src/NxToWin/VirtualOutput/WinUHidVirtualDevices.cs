@@ -137,6 +137,10 @@ internal static class WinUHidNative
     public static extern void WinUHidPS5SetBatteryState(byte[] report, [MarshalAs(UnmanagedType.Bool)] bool wired, byte percentage);
 
     [DllImport(WinUHidDevsDll, CallingConvention = CallingConvention.StdCall)]
+    public static extern void WinUHidPS5SetTouchState(byte[] report, byte touchIndex,
+        [MarshalAs(UnmanagedType.Bool)] bool touchDown, ushort x, ushort y);
+
+    [DllImport(WinUHidDevsDll, CallingConvention = CallingConvention.StdCall)]
     public static extern void WinUHidPS5SetAccelState(byte[] report, float accelX, float accelY, float accelZ);
 
     [DllImport(WinUHidDevsDll, CallingConvention = CallingConvention.StdCall)]
@@ -779,6 +783,7 @@ public sealed class WinUHidSwitchProVirtualDevice : IVirtualOutputDevice
 /// </summary>
 public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
 {
+    private const int TouchContactOffset = 33;
     private IntPtr _device;
     private readonly byte[] _report = new byte[128];
     private WinUHidNative.Ps5RumbleCallback? _rumbleCb;
@@ -788,6 +793,9 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
     private long _rumblePacketsReceived;
     private byte _leftTrigPulse;
     private byte _rightTrigPulse;
+    private volatile BridgeConfiguration _feedbackConfig = new();
+    private int _motorLevels;
+    private bool _touchDown;
 
     public string Name => "Sony DualSense PS5 Virtual Controller (Kernel VHF 0x054C:0x0CE6)";
     public EmulationMode Mode => EmulationMode.DualSense_PS5_VHF;
@@ -838,8 +846,10 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
 
     private void OnPs5Rumble(IntPtr ctx, byte leftMotor, byte rightMotor)
     {
+        Volatile.Write(ref _motorLevels, leftMotor | (rightMotor << 8));
         var (left, right) = HdRumbleEngine.FromLegacyAndImpulseTriggers(
-            leftMotor, rightMotor, _leftTrigPulse, _rightTrigPulse);
+            leftMotor, rightMotor, _feedbackConfig.DualSenseTriggerRumble ? _leftTrigPulse : (byte)0,
+            _feedbackConfig.DualSenseTriggerRumble ? _rightTrigPulse : (byte)0);
         LastLeftRumble = left;
         LastRightRumble = right;
         Interlocked.Increment(ref _rumblePacketsReceived);
@@ -863,14 +873,20 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
     {
         _leftTrigPulse = leftEff != IntPtr.Zero && Marshal.ReadByte(leftEff) != 0 ? (byte)75 : (byte)0;
         _rightTrigPulse = rightEff != IntPtr.Zero && Marshal.ReadByte(rightEff) != 0 ? (byte)75 : (byte)0;
+        int motors = Volatile.Read(ref _motorLevels);
+        OnPs5Rumble(ctx, (byte)motors, (byte)(motors >> 8));
     }
 
     public void UpdateControllerState(RoutedInput input, BridgeConfiguration config)
     {
         if (!IsRunning) return;
+        _feedbackConfig = config;
         var s = input.State;
         var btns = input.Buttons;
-        bool suppressGyro = input.SuppressGyro;
+        bool suppressGyro = input.SuppressGyro || !config.DualSenseMotion;
+        bool touching = config.TouchpadFromStick && btns.HasFlag(SwitchButtons.Minus);
+        UpdateTouch(touching, s.RightStickX, s.RightStickY);
+        if (touching) btns &= ~SwitchButtons.Minus;
 
         // Exact WINUHID_PS5_INPUT_REPORT layout (WinUHidPS5.h):
         // [0] = ReportId (managed by WinUHid)
@@ -886,8 +902,8 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
         // [10] = Home(1) | Touchpad(1) | Mute(1) ...
         _report[1] = (byte)Math.Clamp((int)MathF.Round((s.LeftStickX + 1f) * 127.5f), 0, 255);
         _report[2] = (byte)Math.Clamp((int)MathF.Round((-s.LeftStickY + 1f) * 127.5f), 0, 255);
-        _report[3] = (byte)Math.Clamp((int)MathF.Round((s.RightStickX + 1f) * 127.5f), 0, 255);
-        _report[4] = (byte)Math.Clamp((int)MathF.Round((-s.RightStickY + 1f) * 127.5f), 0, 255);
+        _report[3] = touching ? (byte)128 : (byte)Math.Clamp((int)MathF.Round((s.RightStickX + 1f) * 127.5f), 0, 255);
+        _report[4] = touching ? (byte)128 : (byte)Math.Clamp((int)MathF.Round((-s.RightStickY + 1f) * 127.5f), 0, 255);
         _report[5] = s.LeftTriggerAnalog != 0 ? s.LeftTriggerAnalog : (byte)(btns.HasFlag(SwitchButtons.ZL) ? 255 : 0);
         _report[6] = s.RightTriggerAnalog != 0 ? s.RightTriggerAnalog : (byte)(btns.HasFlag(SwitchButtons.ZR) ? 255 : 0);
         _report[7]++;
@@ -916,8 +932,7 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
 
         byte b10 = 0;
         if (btns.HasFlag(SwitchButtons.Home)) b10 |= 0x01;
-        if (btns.HasFlag(SwitchButtons.Capture)) b10 |= 0x02;
-        if (btns.HasFlag(SwitchButtons.ChatC)) b10 |= 0x04;
+        if (config.CaptureAsTouchpad && btns.HasFlag(SwitchButtons.Capture)) b10 |= 0x02;
         _report[10] = b10;
 
         const float deg2Rad = MathF.PI / 180f;
@@ -929,15 +944,30 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
             suppressGyro ? 0f : s.GyroDps_Z * deg2Rad);
         WinUHidNative.WinUHidPS5SetAccelState(
             _report,
-            s.AccelG_X * gToMps2,
-            s.AccelG_Y * gToMps2,
-            s.AccelG_Z * gToMps2);
+            config.DualSenseMotion ? s.AccelG_X * gToMps2 : 0f,
+            config.DualSenseMotion ? s.AccelG_Y * gToMps2 : 0f,
+            config.DualSenseMotion ? s.AccelG_Z * gToMps2 : gToMps2);
         // The virtual USB controller has its own power state.
         WinUHidNative.WinUHidPS5SetBatteryState(_report, true, 100);
 
         if (WinUHidNative.WinUHidPS5ReportInput(_device, _report))
             Interlocked.Increment(ref _inputReportsSent);
     }
+
+    private void UpdateTouch(bool touching, float x, float y)
+    {
+        if (!touching && !_touchDown) return;
+        var (touchX, touchY) = MapStickToTouch(x, y);
+        byte contactId = _report[TouchContactOffset];
+        WinUHidNative.WinUHidPS5SetTouchState(_report, 0, touching, touchX, touchY);
+        // Preserve the same touch ID throughout a held contact.
+        if (touching && _touchDown) _report[TouchContactOffset] = contactId;
+        _touchDown = touching;
+    }
+
+    internal static (ushort X, ushort Y) MapStickToTouch(float x, float y) =>
+        ((ushort)MathF.Round((Math.Clamp(x, -1f, 1f) + 1f) * (1919f / 2)),
+         (ushort)MathF.Round((1f - Math.Clamp(y, -1f, 1f)) * (1079f / 2)));
 
     public void Stop()
     {
@@ -958,6 +988,7 @@ public sealed class WinUHidDualSenseVirtualDevice : IVirtualOutputDevice
 /// </summary>
 public sealed class WinUHidXboxOneVirtualDevice : IVirtualOutputDevice
 {
+    private volatile BridgeConfiguration _feedbackConfig = new();
     private IntPtr _device;
     private readonly byte[] _report = new byte[32];
     private WinUHidNative.XOneForceFeedbackCallback? _callback;
@@ -998,7 +1029,9 @@ public sealed class WinUHidXboxOneVirtualDevice : IVirtualOutputDevice
     {
         byte mainL = (byte)Math.Clamp((int)Math.Round(leftMotorPct * 2.55), 0, 255);
         byte mainR = (byte)Math.Clamp((int)Math.Round(rightMotorPct * 2.55), 0, 255);
-        var (left, right) = HdRumbleEngine.FromLegacyAndImpulseTriggers(mainL, mainR, leftTrigPct, rightTrigPct);
+        var (left, right) = HdRumbleEngine.FromLegacyAndImpulseTriggers(mainL, mainR,
+            _feedbackConfig.XboxOneTriggerRumble ? leftTrigPct : (byte)0,
+            _feedbackConfig.XboxOneTriggerRumble ? rightTrigPct : (byte)0);
         LastLeftRumble = left;
         LastRightRumble = right;
         Interlocked.Increment(ref _rumblePacketsReceived);
@@ -1008,6 +1041,7 @@ public sealed class WinUHidXboxOneVirtualDevice : IVirtualOutputDevice
     public void UpdateControllerState(RoutedInput input, BridgeConfiguration config)
     {
         if (!IsRunning) return;
+        _feedbackConfig = config;
         var s = input.State;
         var btns = input.Buttons;
 

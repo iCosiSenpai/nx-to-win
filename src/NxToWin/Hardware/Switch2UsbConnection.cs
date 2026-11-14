@@ -21,7 +21,7 @@ internal sealed class Switch2UsbConnection : IDisposable
         try
         {
             if (_file.IsInvalid || !WinUsb_Initialize(_file, out _interface))
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Apertura interfaccia WinUSB");
+                throw new Win32Exception(Marshal.GetLastWin32Error());
             uint timeout = 350;
             foreach (byte endpoint in new byte[] { 0x82, 0x02 })
                 if (!WinUsb_SetPipePolicy(_interface, endpoint, 3, sizeof(uint), ref timeout))
@@ -52,13 +52,14 @@ internal sealed class Switch2UsbConnection : IDisposable
             : new Switch2UsbConnection(match.Id);
     }
 
-    public void Initialize()
+    public void Initialize(bool hasOpticalSensor)
     {
         byte[] start = [1, 0, 255, 255, 255, 255, 255, 255];
         Exchange(3, 0x0D, start);
         Exchange(7, 1, []);
-        Exchange(0x0C, 2, [0x27, 0, 0, 0]);
-        Exchange(0x0C, 4, [0x27, 0, 0, 0]);
+        byte featureMask = hasOpticalSensor ? (byte)0x37 : (byte)0x27;
+        Exchange(0x0C, 2, [featureMask, 0, 0, 0]);
+        Exchange(0x0C, 4, [featureMask, 0, 0, 0]);
         Exchange(3, 0x0A, [5, 0, 0, 0]);
         Exchange(3, 0x0D, start);
     }

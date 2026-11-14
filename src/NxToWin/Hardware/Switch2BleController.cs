@@ -11,6 +11,7 @@ using NxToWin.Dsp;
 using NxToWin.Models;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
+using Windows.Devices.Enumeration;
 
 namespace NxToWin.Hardware;
 
@@ -37,9 +38,6 @@ public sealed class Switch2BleController : IPhysicalController
     private long _reportWindowStartTicks = Stopwatch.GetTimestamp();
     private int _reportWindowCount;
     private double _currentRateHz;
-    private ushort _prevMouseX;
-    private ushort _prevMouseY;
-    private bool _hasPrevMouse;
 
     public string Id { get; }
     public ulong BluetoothAddress { get; }
@@ -394,41 +392,8 @@ public sealed class Switch2BleController : IPhysicalController
         if (!IsLeftJoyCon)
             (snap.RightStickX, snap.RightStickY) = _rightStickCal.Normalize(snap.RawRightStickX, snap.RawRightStickY, Config.RightStickDeadzone);
         if (motion) ImuFusion.ProcessSample(snap, IsProController, Config.Enable9AxisMagFusion);
-        if (Config.EnableJoyCon2OpticalMouse && (IsLeftJoyCon || IsRightJoyCon))
-            ProcessOpticalMouse(snap);
-        else _hasPrevMouse = false;
         LatestState = snap;
         StateUpdated?.Invoke(this, snap);
-    }
-
-    [DllImport("user32.dll")]
-    private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
-    private const uint MOUSEEVENTF_MOVE = 0x0001;
-
-    private void ProcessOpticalMouse(ControllerStateSnapshot snap)
-    {
-        if (!_hasPrevMouse)
-        {
-            _prevMouseX = snap.MouseRawX;
-            _prevMouseY = snap.MouseRawY;
-            _hasPrevMouse = true;
-            return;
-        }
-
-        short dx = (short)(snap.MouseRawX - _prevMouseX);
-        short dy = (short)(snap.MouseRawY - _prevMouseY);
-        _prevMouseX = snap.MouseRawX;
-        _prevMouseY = snap.MouseRawY;
-
-        if (Math.Abs((int)dx) < 1200 && Math.Abs((int)dy) < 1200)
-        {
-            int mx = (int)Math.Round(dx * Config.OpticalMouseSensitivity * 0.25f);
-            int my = (int)Math.Round(dy * Config.OpticalMouseSensitivity * 0.25f);
-            if (mx != 0 || my != 0)
-            {
-                mouse_event(MOUSEEVENTF_MOVE, mx, my, 0, UIntPtr.Zero);
-            }
-        }
     }
 
     public bool SupportsRumble => _vibrationWriteChar != null;
@@ -441,7 +406,44 @@ public sealed class Switch2BleController : IPhysicalController
         byte[] payload = ProductId == NintendoIds.NsoGameCubePid
             ? HdRumbleEngine.BuildGameCubeOutput(sequence, !scaled.IsSilent, wired: false)
             : HdRumbleEngine.BuildSwitch2Report(sequence, scaled, wired: false, IsLeftJoyCon, IsRightJoyCon);
-        await WriteRawCharacteristicAsync(characteristic, payload).ConfigureAwait(false);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(750));
+        await WriteRawCharacteristicAsync(characteristic, payload, timeout.Token).ConfigureAwait(false);
+    }
+
+    internal async Task<BatteryReading> ReadBatteryAsync()
+    {
+        var fallback = LatestState.Battery;
+        var reading = await BatteryDiagnostics.ReadWindowsBatteryAsync(DeviceInfoId,
+            DeviceInformationKind.AssociationEndpoint, fallback).ConfigureAwait(false);
+        if (reading.Percent.HasValue || _bleDevice is not { } device ||
+            device.ConnectionStatus != BluetoothConnectionStatus.Connected) return reading;
+
+        try
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(900));
+            var services = await device.GetGattServicesForUuidAsync(GattServiceUuids.Battery, BluetoothCacheMode.Cached)
+                .AsTask(timeout.Token).ConfigureAwait(false);
+            if (services.Status != GattCommunicationStatus.Success) return reading;
+            foreach (var service in services.Services)
+            {
+                using (service)
+                {
+                    var characteristics = await service.GetCharacteristicsForUuidAsync(GattCharacteristicUuids.BatteryLevel, BluetoothCacheMode.Cached)
+                        .AsTask(timeout.Token).ConfigureAwait(false);
+                    if (characteristics.Status != GattCommunicationStatus.Success) continue;
+                    foreach (var characteristic in characteristics.Characteristics)
+                    {
+                        var value = await characteristic.ReadValueAsync(BluetoothCacheMode.Uncached)
+                            .AsTask(timeout.Token).ConfigureAwait(false);
+                        if (value.Status == GattCommunicationStatus.Success &&
+                            value.Value.ToArray() is [byte percent] && percent <= 100)
+                            reading = fallback.WithWindowsPercentage(percent) with { Source = "Bluetooth · Battery Service" };
+                    }
+                }
+            }
+        }
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or UnauthorizedAccessException or OperationCanceledException) { }
+        return reading;
     }
     public async Task SetPlayerLedsAsync(int playerNumber)
     {
@@ -469,12 +471,13 @@ public sealed class Switch2BleController : IPhysicalController
         if (!IsLeftJoyCon) _rightStickCal = _rightStickCal.WithCenter(sample.RawRightStickX, sample.RawRightStickY);
     }
 
-    private static async Task WriteRawCharacteristicAsync(GattCharacteristic characteristic, byte[] payload)
+    private static async Task WriteRawCharacteristicAsync(GattCharacteristic characteristic, byte[] payload,
+        CancellationToken cancellationToken = default)
     {
         var option = characteristic.CharacteristicProperties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse)
             ? GattWriteOption.WriteWithoutResponse
             : GattWriteOption.WriteWithResponse;
-        var status = await characteristic.WriteValueAsync(payload.AsBuffer(), option);
+        var status = await characteristic.WriteValueAsync(payload.AsBuffer(), option).AsTask(cancellationToken).ConfigureAwait(false);
         if (status != GattCommunicationStatus.Success)
             throw new InvalidOperationException($"Scrittura GATT: {status}.");
     }
