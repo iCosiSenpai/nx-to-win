@@ -3,9 +3,9 @@ using System;
 namespace NxToWin.Dsp;
 
 public readonly record struct VibrationFrame(
-    int LfFreq = 160,
+    double LfFreq = 160,
     int LfAmp = 0,
-    int HfFreq = 320,
+    double HfFreq = 320,
     int HfAmp = 0)
 {
     public static readonly VibrationFrame Silence = new(160, 0, 320, 0);
@@ -23,7 +23,7 @@ public readonly record struct VibrationFrame(
     public bool IsSilent => LfAmp <= 0 && HfAmp <= 0;
     public double LfHz => LfFreq;
     public double HfHz => HfFreq;
-    public float FreqHz => HfAmp > LfAmp ? HfFreq : LfFreq;
+    public double FreqHz => HfAmp > LfAmp ? HfFreq : LfFreq;
     public float Amp => Math.Clamp(Math.Max(LfAmp, HfAmp) / 1023f, 0f, 1f);
 
     public VibrationFrame WithStrength(double multiplier)
@@ -40,7 +40,12 @@ public readonly record struct VibrationFrame(
     // Nintendo Switch 2 encodes frequency logarithmically at 96 steps per octave.
     private static double DecodeFrequency(int code) => 110 * Math.Pow(2, (code - 333) / 96.0);
 
-    private static int EncodeFrequency(int hz) => Math.Clamp(RoundHz(333 + 96 * Math.Log2(Math.Max(10, hz) / 110.0)), 0, 1023);
+    private static int EncodeFrequency(double hz)
+    {
+        double frequency = Math.Clamp(hz, DecodeFrequency(0), DecodeFrequency(1023));
+        int lower = Math.Clamp((int)Math.Floor(333 + 96 * Math.Log2(frequency / 110)), 0, 1022);
+        return frequency - DecodeFrequency(lower) <= DecodeFrequency(lower + 1) - frequency ? lower : lower + 1;
+    }
 
     public void WriteSwitch2Bytes(Span<byte> dest5)
     {
@@ -57,9 +62,9 @@ public readonly record struct VibrationFrame(
         ulong value = 0;
         for (int i = 0; i < 5; i++) value |= (ulong)src5[i] << (8 * i);
         return new VibrationFrame(
-            LfFreq: RoundHz(DecodeFrequency((int)((value >> 20) & 0x3FF))),
+            LfFreq: DecodeFrequency((int)((value >> 20) & 0x3FF)),
             LfAmp: (int)((value >> 30) & 0x3FF),
-            HfFreq: RoundHz(DecodeFrequency((int)(value & 0x3FF))),
+            HfFreq: DecodeFrequency((int)(value & 0x3FF)),
             HfAmp: (int)((value >> 10) & 0x3FF));
     }
 

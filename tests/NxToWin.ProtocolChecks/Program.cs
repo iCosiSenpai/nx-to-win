@@ -97,17 +97,24 @@ static void CheckRumbleAndMotion()
 {
     byte[] example = [0x87, 0xC5, 0x21, 0x91, 0x38];
     var frame = VibrationFrame.FromSwitch2Bytes(example);
-    Require(frame.HfFreq == 167 && frame.HfAmp == 113 && frame.LfFreq == 72 && frame.LfAmp == 226,
+    Require(Math.Round(frame.HfFreq) == 167 && frame.HfAmp == 113 && Math.Round(frame.LfFreq) == 72 && frame.LfAmp == 226,
         "ordine delle bande Switch 2 SDL");
     Span<byte> encoded = stackalloc byte[5];
     frame.WriteSwitch2Bytes(encoded);
-    Require(VibrationFrame.FromSwitch2Bytes(encoded) == frame, "round trip frequenze e ampiezze Switch 2");
+    Require(encoded.SequenceEqual(example), "round trip frequenze e ampiezze Switch 2");
+    for (int code = 0; code < 1024; code++)
+    {
+        ulong packed = (uint)code | (ulong)(uint)code << 20;
+        for (int i = 0; i < 5; i++) encoded[i] = (byte)(packed >> (8 * i));
+        VibrationFrame.FromSwitch2Bytes(encoded).WriteSwitch2Bytes(encoded);
+        Require((encoded[0] | ((encoded[1] & 3) << 8)) == code, $"round trip codice frequenza {code}");
+    }
     var tone = new VibrationFrame(LfFreq: 220, LfAmp: 168, HfFreq: 440, HfAmp: 28);
     tone.WriteSwitch2Bytes(encoded);
     Require(encoded.SequenceEqual(new byte[] { 0x0D, 0x72, 0xD0, 0x1A, 0x2A }), "frequenze logaritmiche 440 e 220 Hz");
     var highTone = tone with { HfFreq = 880 };
     highTone.WriteSwitch2Bytes(encoded);
-    Require(VibrationFrame.FromSwitch2Bytes(encoded).HfFreq == 880, "frequenza Switch 2 oltre 511 Hz");
+    Require(Math.Abs(VibrationFrame.FromSwitch2Bytes(encoded).HfFreq - 880) < 1, "frequenza Switch 2 oltre 511 Hz");
     Require(Math.Abs(HdRumbleEngine.DecodeSwitch1Side(HdRumbleEngine.EncodeSwitch1Side(highTone)).HfHz - 880) < 10,
         "gamma di frequenza Switch 1");
     byte[] switch1 = HdRumbleEngine.EncodeSwitch1Side(new VibrationFrame(160, .05f));
@@ -118,7 +125,7 @@ static void CheckRumbleAndMotion()
     byte[] report = HdRumbleEngine.BuildSwitch2Report(9, samples, wired: true, leftJoyCon: false, rightJoyCon: false);
     Require(report.Length == 64 && report[1] == 0x79 && report[17] == 0x59, "conteggi separati e sequenza USB");
     Require(StereoRumble.TryReadSwitch2Report(report, out var decodedReport) &&
-        decodedReport.Left.Count == 3 && decodedReport.Left.Third.HfFreq == 880 && decodedReport.Right.Count == 1,
+        decodedReport.Left.Count == 3 && Math.Abs(decodedReport.Left.Third.HfFreq - 880) < 1 && decodedReport.Right.Count == 1,
         "inoltro del terzo campione Switch 2");
     byte[] right = HdRumbleEngine.BuildSwitch2Report(9, samples, wired: false, leftJoyCon: false, rightJoyCon: true);
     Require(right.Length == 17 && right[1] == 0x59 && right.AsSpan(2, 5).SequenceEqual(report.AsSpan(18, 5)),

@@ -4,8 +4,8 @@
 
 | Area | Intervento | Verifica |
 | --- | --- | --- |
-| Configurazione | Profili, mappatura, scorciatoie e guadagno nella stessa scheda. Selezione del modello per preparare profili offline. | Avvio della build Release e verifica nella UI dei comandi disponibili sul Joy-Con 2 sinistro. |
-| Layout | Finestra 1260 × 885 DIP, limitata all’area di lavoro del monitor con DPI per-monitor. Barre di scorrimento WPF a tema nei contenitori, menu e registro. | Schermate catturate dalla build Release. Scheda principale e configurazione a piena altezza senza scrollbar di pagina. Menu lungo delle azioni con scrollbar WPF. |
+| Configurazione | Profili, mappatura, scorciatoie e guadagno nella stessa scheda. Selezione del modello per preparare profili offline. | Salvataggio e ripristino al riavvio di un profilo temporaneo. Verifica nella UI dei comandi disponibili sul Joy-Con 2 sinistro. |
+| Layout | Finestra 1260 × 885 DIP, limitata all’area di lavoro del monitor con DPI per-monitor. Barre di scorrimento WPF a tema nei contenitori, menu e registro. | Schermate catturate dalla build Release. Scheda principale e configurazione a piena altezza senza scrollbar di pagina. Barra WPF verificata nel menu delle azioni e trascinata nella finestra ridotta. |
 | Scorciatoie | Il controller selezionato viene elaborato prima dell’uscita virtuale. Le azioni Windows e il ricentraggio funzionano anche mentre USB/IP attende il gioco. DSU riceve i pulsanti rimappati e rispetta la sospensione del giroscopio. | Test di Chat C su pressione breve, presenza per modello e pacchetti DSU. |
 | Vibrazione | Frequenza Switch 2 logaritmica a 10 bit, conteggio campioni per motore, inoltro dei tre campioni. ViGEm conserva le bande dei due motori. Scritture serializzate, stop su cambio uscita o controller e al termine del test. | Pacchetti con uno e tre campioni, instradamento Joy-Con 2, conversione di frequenza e limite di ampiezza combinata nella suite. |
 | Effetti | Campioni da 5 ms raggruppati in pacchetti da 15 ms per Switch 2. Onda stereo, pioggia, impulso GameCube e motivi di Ocarina con pausa fra le note. | Ritmo, intonazione, attacco e rilascio verificati per i tre motivi. |
