@@ -324,6 +324,7 @@ public sealed class WinUHidSwitchProVirtualDevice : IVirtualOutputDevice
     private volatile RoutedInput _latestInput = new(new(), SwitchButtons.None);
     private BridgeConfiguration _latestConfig = new();
     private bool _usbStreamingEnabled;
+    private bool _reportedGuardSleep;
     private bool _imuEnabled = true;
     private byte _inputReportMode = 0x30;
     private int _timer;
@@ -507,17 +508,22 @@ public sealed class WinUHidSwitchProVirtualDevice : IVirtualOutputDevice
                 case 0x03:
                     break;
                 case 0x04:
-                    _usbStreamingEnabled = true;
-                    LogMessage?.Invoke("Switch Pro VHF: streaming HID attivato (0x80 0x04).");
+                    if (!_usbStreamingEnabled)
+                    {
+                        _usbStreamingEnabled = true;
+                        LogMessage?.Invoke("Switch Pro VHF: streaming HID attivato (0x80 0x04).");
+                    }
                     break;
                 case 0x05:
                     if (!_latestConfig.SteamMultiClientGuard)
                     {
                         _usbStreamingEnabled = false;
+                        _reportedGuardSleep = false;
                     }
-                    else
+                    else if (!_reportedGuardSleep)
                     {
-                        LogMessage?.Invoke("Steam Multi-Client Guard: ignored background 0x80 0x05 sleep command.");
+                        _reportedGuardSleep = true;
+                        LogMessage?.Invoke("Protezione Steam: richiesta di sospensione HID ignorata.");
                     }
                     break;
             }

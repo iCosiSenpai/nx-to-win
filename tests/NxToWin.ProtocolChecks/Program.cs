@@ -189,6 +189,9 @@ static void CheckSteamLaunchArguments()
 {
     Require(SteamConflictGuard.HasNoJoyArgument("\"C:\\Program Files (x86)\\Steam\\steam.exe\" -NOJOY -silent"), "Steam avviato esternamente con -nojoy");
     Require(!SteamConflictGuard.HasNoJoyArgument("steam.exe -nojoystick -somevalue \"a -nojoy b\""), "argomento Steam distinto");
+    Require(SteamConflictGuard.IsSwitch2ConnectProcess("Switch2Connect") &&
+        SteamConflictGuard.IsSwitch2ConnectProcess("Switch2Connect_v2.10") &&
+        !SteamConflictGuard.IsSwitch2ConnectProcess("Switch2ConnectUpdater"), "riconoscimento del client con versione");
 }
 
 static void CheckTrack(string name, int[] frequencies, int[] boundaries)

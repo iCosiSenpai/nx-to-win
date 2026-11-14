@@ -13,7 +13,6 @@ public static class SteamConflictGuard
 
     private static readonly (string Name, string[] Processes)[] ControllerClients =
     [
-        ("Switch2Connect", ["Switch2Connect"]),
         ("DS4Windows", ["DS4Windows"]),
         ("reWASD", ["reWASD", "reWASDService", "reWASDEngine"]),
         ("BetterJoy", ["BetterJoy", "BetterJoyForCemu"]),
@@ -39,8 +38,31 @@ public static class SteamConflictGuard
             foreach (var process in processes) process.Dispose();
         }
 
-        return new ClientStatus(names.Contains("steam") ? ReadSteamArguments() : SteamState.Closed,
-            ControllerClients.Where(client => client.Processes.Any(names.Contains)).Select(client => client.Name).ToArray());
+        var clients = ControllerClients.Where(client => client.Processes.Any(names.Contains)).Select(client => client.Name).ToList();
+        if (names.Any(IsSwitch2ConnectProcess)) clients.Insert(0, "Switch2Connect");
+        return new ClientStatus(names.Contains("steam") ? ReadSteamArguments() : SteamState.Closed, clients.ToArray());
+    }
+
+    internal static bool IsSwitch2ConnectProcess(string name) => Regex.IsMatch(name,
+        @"^Switch2Connect(?:[ _-]+v?\d[\w. -]*)?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    internal static List<Process> FindSwitch2ConnectProcesses()
+    {
+        var clients = new List<Process>();
+        foreach (var process in Process.GetProcesses())
+        {
+            try
+            {
+                if (IsSwitch2ConnectProcess(process.ProcessName))
+                {
+                    clients.Add(process);
+                    continue;
+                }
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception) { }
+            process.Dispose();
+        }
+        return clients;
     }
 
     private static SteamState ReadSteamArguments()

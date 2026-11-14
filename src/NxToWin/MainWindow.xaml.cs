@@ -735,7 +735,7 @@ public partial class MainWindow : Window
         TakeOverButton.IsEnabled = false;
         try
         {
-            var processes = Process.GetProcessesByName("Switch2Connect");
+            var processes = SteamConflictGuard.FindSwitch2ConnectProcesses();
             try
             {
                 foreach (var process in processes)
@@ -760,11 +760,15 @@ public partial class MainWindow : Window
             {
                 foreach (var process in processes) process.Dispose();
             }
-            AppendLog(processes.Length == 0 ? "Switch2Connect non in esecuzione. Ricerca controller." : "Switch2Connect chiuso. Ricerca controller.");
+            AppendLog(processes.Count == 0 ? "Switch2Connect non in esecuzione. Ricerca controller." : "Switch2Connect chiuso. Ricerca controller.");
             await _discovery.ScanPairedBleAndHidAsync();
         }
         catch (Exception ex) { AppendLog($"Switch2Connect: {ex.Message}"); }
-        finally { TakeOverButton.IsEnabled = true; }
+        finally
+        {
+            TakeOverButton.IsEnabled = true;
+            _nextClientCheck = 0;
+        }
     }
 
     private async void OnCheckSdlClick(object sender, RoutedEventArgs e)
