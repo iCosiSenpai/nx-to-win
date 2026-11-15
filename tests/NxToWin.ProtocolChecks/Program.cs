@@ -5,6 +5,7 @@ using NxToWin.Dsp;
 using NxToWin.Hardware;
 using NxToWin.HostInput;
 using NxToWin.Models;
+using NxToWin.Updates;
 using NxToWin.VirtualOutput;
 
 CheckSwitch2UsbDescriptors();
@@ -16,8 +17,36 @@ CheckSteamLaunchArguments();
 CheckSdlAndOcarina();
 CheckControllerMappings();
 CheckFactoryProfiles();
+CheckUpdates();
 await CheckDsuAsync();
-Console.WriteLine("USB, report Switch 2, batterie, vibrazione, fusione e DSU: verifiche riuscite.");
+Console.WriteLine("USB, report Switch 2, batterie, vibrazione, fusione, aggiornamenti e DSU: verifiche riuscite.");
+
+static void CheckUpdates()
+{
+    var current = new Version(0, 5, 0);
+    string hash = new('a', 64);
+    var asset = new GitHubUpdates.Asset("NxToWin.Desktop-0.5.1-full.nupkg", "uploaded", 12345, "sha256:" + hash);
+    var release = new GitHubUpdates.Release("v0.5.1", false, false, true, [asset]);
+    Require(GitHubUpdates.ReadAsset(release, current) is { SHA256: var sha, Size: 12345 } && sha == hash,
+        "aggiornamento stabile immutabile e SHA-256");
+    Require(GitHubUpdates.ReadAsset(release, new Version(0, 5, 1)) is null &&
+        GitHubUpdates.ReadAsset(release, new Version(0, 6, 0)) is null, "aggiornamento solo a una versione più recente");
+    foreach (var rejected in new[]
+    {
+        release with { Immutable = false },
+        release with { Draft = true },
+        release with { TagName = "v0.5.1-rc.1", Prerelease = true },
+        release with { Assets = [asset with { Digest = null }] },
+        release with { Assets = [asset with { Digest = "sha256:" + new string('z', 64) }] },
+        release with { Assets = [asset with { Name = "different-package-0.5.1-full.nupkg" }] }
+    })
+    {
+        bool invalid = false;
+        try { _ = GitHubUpdates.ReadAsset(rejected, current); }
+        catch (System.IO.InvalidDataException) { invalid = true; }
+        Require(invalid, "metadati di aggiornamento non attendibili rifiutati");
+    }
+}
 
 static void CheckSwitch2UsbDescriptors()
 {

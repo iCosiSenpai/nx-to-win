@@ -110,6 +110,21 @@
   <data name="Dona con PayPal" xml:space="preserve"><value>Donate with PayPal</value></data>
   <data name="Uscita virtuale in avvio" xml:space="preserve"><value>Starting virtual output</value></data>
   <data name="Impostazioni salvate." xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="Aggiornamenti" xml:space="preserve"><value>Updates</value></data>
+  <data name="Aggiornamenti automatici" xml:space="preserve"><value>Automatic updates</value></data>
+  <data name="Verifica aggiornamento" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="Installa e riavvia" xml:space="preserve"><value>Install and restart</value></data>
+  <data name="Versione installata · {0}" xml:space="preserve"><value>Installed version · {0}</value></data>
+  <data name="Scarica le nuove versioni in background e le installa alla chiusura dell’app." xml:space="preserve"><value>Download new versions in the background and install them when the app closes.</value></data>
+  <data name="Per gli aggiornamenti automatici usa l’installer di NxToWin da GitHub." xml:space="preserve"><value>Use the NxToWin installer from GitHub to enable automatic updates.</value></data>
+  <data name="Apri la release su GitHub" xml:space="preserve"><value>Open the GitHub release</value></data>
+  <data name="Verifica aggiornamenti in corso…" xml:space="preserve"><value>Checking for updates…</value></data>
+  <data name="Stai usando la versione più recente." xml:space="preserve"><value>You have the latest version.</value></data>
+  <data name="È disponibile la versione {0}." xml:space="preserve"><value>Version {0} is available.</value></data>
+  <data name="Versione {0} pronta. Sarà installata alla chiusura." xml:space="preserve"><value>Version {0} is ready and will install when you close the app.</value></data>
+  <data name="Versione {0} pronta per l’installazione." xml:space="preserve"><value>Version {0} is ready to install.</value></data>
+  <data name="Download della versione {0}…" xml:space="preserve"><value>Downloading version {0}…</value></data>
+  <data name="Aggiornamento non riuscito. Riprova tra poco." xml:space="preserve"><value>The update failed. Try again in a moment.</value></data>
   <data name="Impossibile salvare le impostazioni." xml:space="preserve"><value>Could not save settings.</value></data>
   <data name="Predefinito" xml:space="preserve"><value>Default</value></data>
   <data name="Profilo" xml:space="preserve"><value>Profile</value></data>

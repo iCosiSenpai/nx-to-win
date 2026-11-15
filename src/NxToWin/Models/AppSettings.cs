@@ -11,6 +11,7 @@ internal sealed record AppSettings
     public string Language { get; init; } = "it";
     public bool RefreshBatteries { get; init; } = true;
     public bool StartMaximized { get; init; }
+    public bool AutomaticUpdates { get; init; }
 
     public static AppSettings Load()
     {

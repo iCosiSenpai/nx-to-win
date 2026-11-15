@@ -477,19 +477,37 @@
             </TabItem>
             <TabItem Header="{local:Loc '_Impostazioni'}">
                 <ScrollViewer>
-                    <Border Style="{StaticResource Panel}" MaxWidth="580" HorizontalAlignment="Left" VerticalAlignment="Top">
-                        <StackPanel>
-                            <TextBlock Text="{local:Loc 'Impostazioni dell’app'}" Style="{StaticResource Section}"/>
-                            <Label Content="{local:Loc 'Lingua'}" Target="{Binding ElementName=AppLanguageCombo}" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox x:Name="AppLanguageCombo" SelectionChanged="OnPreferencesChanged"/>
-                            <TextBlock Text="{local:Loc 'La lingua viene applicata al prossimo avvio.'}" Style="{StaticResource MutedText}" Margin="0,6,0,12"/>
-                            <CheckBox x:Name="AutoBatteryCheck" Content="{local:Loc 'Aggiorna automaticamente la scheda Batterie'}"
-                                      Checked="OnPreferencesChanged" Unchecked="OnPreferencesChanged"/>
-                            <CheckBox x:Name="StartMaximizedCheck" Content="{local:Loc 'Apri la finestra massimizzata'}"
-                                      Checked="OnPreferencesChanged" Unchecked="OnPreferencesChanged"/>
-                            <TextBlock x:Name="PreferencesStatus" Style="{StaticResource MutedText}" Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <StackPanel MaxWidth="580" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Border Style="{StaticResource Panel}">
+                            <StackPanel>
+                                <TextBlock Text="{local:Loc 'Impostazioni dell’app'}" Style="{StaticResource Section}"/>
+                                <Label Content="{local:Loc 'Lingua'}" Target="{Binding ElementName=AppLanguageCombo}" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="AppLanguageCombo" SelectionChanged="OnPreferencesChanged"/>
+                                <TextBlock Text="{local:Loc 'La lingua viene applicata al prossimo avvio.'}" Style="{StaticResource MutedText}" Margin="0,6,0,12"/>
+                                <CheckBox x:Name="AutoBatteryCheck" Content="{local:Loc 'Aggiorna automaticamente la scheda Batterie'}"
+                                          Checked="OnPreferencesChanged" Unchecked="OnPreferencesChanged"/>
+                                <CheckBox x:Name="StartMaximizedCheck" Content="{local:Loc 'Apri la finestra massimizzata'}"
+                                          Checked="OnPreferencesChanged" Unchecked="OnPreferencesChanged"/>
+                                <TextBlock x:Name="PreferencesStatus" Style="{StaticResource MutedText}" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="{local:Loc 'Aggiornamenti'}" Style="{StaticResource Section}"/>
+                                <TextBlock x:Name="InstalledVersionText" Style="{StaticResource MutedText}"/>
+                                <CheckBox x:Name="AutoUpdateCheck" Content="{local:Loc 'Aggiornamenti automatici'}"
+                                          Checked="OnPreferencesChanged" Unchecked="OnPreferencesChanged"/>
+                                <TextBlock x:Name="AutoUpdateDescription" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                <WrapPanel>
+                                    <Button x:Name="CheckUpdateButton" Content="{local:Loc 'Verifica aggiornamento'}" Click="OnCheckUpdatesClick"/>
+                                    <Button x:Name="InstallUpdateButton" Content="{local:Loc 'Installa e riavvia'}" Click="OnInstallUpdateClick"
+                                            Visibility="Collapsed" Margin="8,0,0,0"/>
+                                </WrapPanel>
+                                <TextBlock x:Name="UpdateStatusText" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                           AutomationProperties.LiveSetting="Polite"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
         </TabControl>

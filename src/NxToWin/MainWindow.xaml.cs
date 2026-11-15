@@ -102,6 +102,7 @@ public partial class MainWindow : Window
         Select(AppLanguageCombo, _preferences.Language);
         AutoBatteryCheck.IsChecked = _preferences.RefreshBatteries;
         StartMaximizedCheck.IsChecked = _preferences.StartMaximized;
+        InitializeUpdates();
         if (_preferences.StartMaximized) WindowState = WindowState.Maximized;
         LoadProfileControls(_profiles.Draft);
         if (FactoryProfile.All.FirstOrDefault(model => model.Id == _profiles.ActiveFactoryId) is { } factory)
@@ -983,13 +984,16 @@ public partial class MainWindow : Window
         {
             Language = ChoiceValue(AppLanguageCombo, "it"),
             RefreshBatteries = AutoBatteryCheck.IsChecked == true,
-            StartMaximized = StartMaximizedCheck.IsChecked == true
+            StartMaximized = StartMaximizedCheck.IsChecked == true,
+            AutomaticUpdates = AutoUpdateCheck.IsChecked == true
         };
         try
         {
             preferences.Save();
+            bool automaticUpdatesChanged = preferences.AutomaticUpdates != _preferences.AutomaticUpdates;
             _preferences = preferences;
             PreferencesStatus.Text = T("Impostazioni salvate.");
+            if (automaticUpdatesChanged) ConfigureAutomaticUpdates();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -1261,6 +1265,8 @@ public partial class MainWindow : Window
         e.Cancel = true;
         if (_closing) return;
         _closing = true;
+        _updateTimer.Stop();
+        _updateOperation?.Cancel();
         _uiTimer.Stop();
         _saveTimer.Stop();
         _rumblePlayback?.Cancel();
@@ -1274,6 +1280,7 @@ public partial class MainWindow : Window
             DisposeOutput();
             _dsu.Dispose();
         }
+        await ApplyAutomaticUpdateOnCloseAsync();
         _readyToClose = true;
         _ = Dispatcher.InvokeAsync(Close);
     }
