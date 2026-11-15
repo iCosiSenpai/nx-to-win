@@ -1,12 +1,16 @@
 using System.Buffers.Binary;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using NxToWin.Dsp;
 using NxToWin.Hardware;
 using NxToWin.HostInput;
 using NxToWin.Models;
 using NxToWin.Updates;
 using NxToWin.VirtualOutput;
+using Velopack.Exceptions;
+using Velopack.Locators;
 
 CheckSwitch2UsbDescriptors();
 CheckSwitch2Reports();
@@ -17,18 +21,19 @@ CheckSteamLaunchArguments();
 CheckSdlAndOcarina();
 CheckControllerMappings();
 CheckFactoryProfiles();
-CheckUpdates();
+await CheckUpdatesAsync();
 await CheckDsuAsync();
 Console.WriteLine("USB, report Switch 2, batterie, vibrazione, fusione, aggiornamenti e DSU: verifiche riuscite.");
 
-static void CheckUpdates()
+static async Task CheckUpdatesAsync()
 {
     var current = new Version(0, 5, 0);
-    string hash = new('a', 64);
-    var asset = new GitHubUpdates.Asset("NxToWin.Desktop-0.5.1-full.nupkg", "uploaded", 12345, "sha256:" + hash);
+    byte[] package = [0, 1, 3, 5, 8];
+    string hash = Convert.ToHexString(SHA256.HashData(package));
+    var asset = new GitHubUpdates.Asset("NxToWin.Desktop-0.5.1-full.nupkg", "uploaded", package.Length, "sha256:" + hash.ToLowerInvariant());
     var release = new GitHubUpdates.Release("v0.5.1", false, false, true, [asset]);
-    Require(GitHubUpdates.ReadAsset(release, current) is { SHA256: var sha, Size: 12345 } && sha == hash,
-        "aggiornamento stabile immutabile e SHA-256");
+    var update = GitHubUpdates.ReadAsset(release, current)!;
+    Require(update.SHA256 == hash && update.Size == package.Length, "aggiornamento stabile immutabile e SHA-256");
     Require(GitHubUpdates.ReadAsset(release, new Version(0, 5, 1)) is null &&
         GitHubUpdates.ReadAsset(release, new Version(0, 6, 0)) is null, "aggiornamento solo a una versione più recente");
     foreach (var rejected in new[]
@@ -45,6 +50,26 @@ static void CheckUpdates()
         try { _ = GitHubUpdates.ReadAsset(rejected, current); }
         catch (System.IO.InvalidDataException) { invalid = true; }
         Require(invalid, "metadati di aggiornamento non attendibili rifiutati");
+    }
+
+    var folder = Directory.CreateTempSubdirectory("nxtowin-update-");
+    string path = Path.Combine(folder.FullName, update.FileName);
+    try
+    {
+        var manager = new GitHubUpdates.Manager(new TestVelopackLocator(GitHubUpdates.PackageId, current.ToString(), folder.FullName));
+        await File.WriteAllBytesAsync(path, package);
+        await manager.VerifyAsync(update);
+        package[0]++;
+        await File.WriteAllBytesAsync(path, package);
+        bool rejected = false;
+        try { await manager.VerifyAsync(update); }
+        catch (ChecksumFailedException) { rejected = true; }
+        Require(rejected, "Velopack rifiuta un pacchetto della stessa dimensione con contenuto alterato");
+    }
+    finally
+    {
+        File.Delete(path);
+        folder.Delete();
     }
 }
 

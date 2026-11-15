@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Velopack;
+using Velopack.Locators;
 using Velopack.Logging;
 using Velopack.Sources;
 
@@ -55,7 +56,8 @@ internal static class GitHubUpdates
             Type = VelopackAssetType.Full,
             FileName = fileName,
             Size = asset.Size,
-            SHA256 = digest[7..]
+            // Velopack compares its uppercase hexadecimal digest with an ordinal comparison.
+            SHA256 = digest[7..].ToUpperInvariant()
         };
     }
 
@@ -64,7 +66,7 @@ internal static class GitHubUpdates
 
     internal sealed record Asset(string Name, string State, long Size, string? Digest);
 
-    internal sealed class Manager() : UpdateManager(new Source())
+    internal sealed class Manager(IVelopackLocator? locator = null) : UpdateManager(new Source(), locator: locator)
     {
         // The stock download path skips checksum verification when a package is already cached.
         internal Task VerifyAsync(VelopackAsset asset) => VerifyPackageChecksumAsync(asset);
